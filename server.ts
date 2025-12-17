@@ -11,6 +11,8 @@ import express, { type Request, type Response, type NextFunction } from 'express
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import path from 'path'
+import fs from 'fs'
+import crypto from 'crypto'
 import os from 'os'
 import instanceManager from './instanceManager'
 import { generateCarouselMessage, generateListMessage, generateButtonMessage, prepareWAMessageMedia, type CarouselCard } from './lib/Utils/messages.js'
@@ -20,6 +22,163 @@ import licenseManager from './lib/License/licenseManager.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+// ==================== PROTEÇÃO DE CRÉDITOS ====================
+const PROTECTED_FOOTER = `<!-- Footer Fixo -->
+    <footer id="mainFooter" style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 12px 20px; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 0.8rem; z-index: 100;">
+        <span id="footerCredits">© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys</span>
+    </footer>`
+
+const FOOTER_PROTECTION_SCRIPT = `
+    <script>
+        // Proteção de créditos do footer
+        (function() {
+            const fc = '© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys';
+            const fe = document.getElementById('footerCredits');
+            const ff = document.getElementById('mainFooter');
+            function checkFooter() {
+                if (!fe || !ff || fe.innerHTML !== fc || ff.style.display === 'none' || ff.style.visibility === 'hidden' || ff.style.opacity === '0') {
+                    if (ff) { ff.style.cssText = 'position:fixed;bottom:0;left:0;right:0;text-align:center;padding:12px 20px;background:rgba(10,10,10,0.95);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1);color:#888;font-size:0.8rem;z-index:100;display:block;visibility:visible;opacity:1;'; }
+                    if (fe) fe.innerHTML = fc;
+                    else if (ff) ff.innerHTML = '<span id="footerCredits">' + fc + '</span>';
+                }
+            }
+            checkFooter();
+            setInterval(checkFooter, 2000);
+            new MutationObserver(checkFooter).observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+        })();
+    </script>`
+
+// Arquivos HTML protegidos
+const PROTECTED_HTML_FILES = ['index.html', 'docs.html', 'api-tester.html', 'qr-client.html']
+
+// Armazena hashes originais dos arquivos
+const originalFileHashes: Map<string, string> = new Map()
+
+/**
+ * Calcula hash MD5 de um conteúdo
+ */
+function calculateHash(content: string): string {
+    return crypto.createHash('md5').update(content).digest('hex')
+}
+
+/**
+ * Verifica se o arquivo HTML contém o footer de créditos
+ */
+function hasValidFooter(content: string): boolean {
+    return content.includes('id="mainFooter"') && 
+           content.includes('id="footerCredits"') && 
+           content.includes('Pastorini API') &&
+           content.includes('wa.me/5582988898565')
+}
+
+/**
+ * Injeta o footer de créditos no HTML se estiver faltando
+ */
+function injectFooterIfMissing(content: string): string {
+    if (hasValidFooter(content)) {
+        return content
+    }
+    
+    console.log('[Credits] ⚠️ Footer de créditos removido - restaurando...')
+    
+    // Injeta antes do </body>
+    let modified = content
+    
+    // Remove footer existente se estiver corrompido
+    modified = modified.replace(/<footer[^>]*id="mainFooter"[^>]*>[\s\S]*?<\/footer>/gi, '')
+    
+    // Injeta o footer correto antes do </body>
+    if (modified.includes('</body>')) {
+        modified = modified.replace('</body>', `${PROTECTED_FOOTER}\n</body>`)
+    }
+    
+    // Verifica se tem o script de proteção
+    if (!modified.includes('Proteção de créditos do footer')) {
+        modified = modified.replace('</body>', `${FOOTER_PROTECTION_SCRIPT}\n</body>`)
+    }
+    
+    return modified
+}
+
+/**
+ * Verifica e restaura arquivos HTML protegidos no startup
+ */
+function verifyAndRestoreProtectedFiles(): void {
+    const publicDir = path.join(__dirname, 'public')
+    
+    console.log('[Credits] 🔒 Verificando integridade dos arquivos protegidos...')
+    
+    for (const filename of PROTECTED_HTML_FILES) {
+        const filePath = path.join(publicDir, filename)
+        
+        try {
+            if (!fs.existsSync(filePath)) {
+                console.log(`[Credits] ⚠️ Arquivo não encontrado: ${filename}`)
+                continue
+            }
+            
+            let content = fs.readFileSync(filePath, 'utf-8')
+            const originalHash = calculateHash(content)
+            
+            // Verifica se tem footer válido
+            if (!hasValidFooter(content)) {
+                console.log(`[Credits] ⚠️ Footer inválido em ${filename} - restaurando...`)
+                content = injectFooterIfMissing(content)
+                fs.writeFileSync(filePath, content, 'utf-8')
+                console.log(`[Credits] ✓ ${filename} restaurado com sucesso`)
+            } else {
+                console.log(`[Credits] ✓ ${filename} - OK`)
+            }
+            
+            // Armazena hash para verificação posterior
+            originalFileHashes.set(filename, calculateHash(content))
+            
+        } catch (error) {
+            console.error(`[Credits] ❌ Erro ao verificar ${filename}:`, error)
+        }
+    }
+    
+    console.log('[Credits] 🔒 Verificação concluída')
+}
+
+/**
+ * Middleware para servir arquivos HTML com proteção de créditos
+ */
+function creditsProtectionMiddleware(req: Request, res: Response, next: NextFunction): void {
+    // Só processa arquivos HTML protegidos
+    const requestedFile = req.path === '/' ? 'index.html' : req.path.substring(1)
+    
+    if (!PROTECTED_HTML_FILES.includes(requestedFile)) {
+        return next()
+    }
+    
+    const filePath = path.join(__dirname, 'public', requestedFile)
+    
+    try {
+        if (!fs.existsSync(filePath)) {
+            return next()
+        }
+        
+        let content = fs.readFileSync(filePath, 'utf-8')
+        
+        // Verifica e injeta footer se necessário
+        if (!hasValidFooter(content)) {
+            console.log(`[Credits] ⚠️ Footer removido detectado em ${requestedFile} - injetando...`)
+            content = injectFooterIfMissing(content)
+            
+            // Salva o arquivo corrigido
+            fs.writeFileSync(filePath, content, 'utf-8')
+        }
+        
+        res.setHeader('Content-Type', 'text/html; charset=utf-8')
+        res.send(content)
+        
+    } catch (error) {
+        console.error(`[Credits] Erro ao servir ${requestedFile}:`, error)
+        next()
+    }
+}
 
 const app = express()
 const PORT = 3000
@@ -189,6 +348,11 @@ const apiAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
 
 app.use(panelAuthMiddleware)
 app.use(apiAuthMiddleware)
+
+// Middleware de proteção de créditos (antes do static)
+app.use(creditsProtectionMiddleware)
+
+// Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')))
 
 // License check middleware - blocks API if license is invalid
@@ -1279,6 +1443,9 @@ app.get('/api/stats', (_req: Request, res: Response) => {
 // Initialize and start server
 async function startServer() {
     try {
+        // Verificar e restaurar arquivos protegidos no startup
+        verifyAndRestoreProtectedFiles()
+        
         // Initialize license manager (now async - handles activation)
         await licenseManager.initialize()
         
