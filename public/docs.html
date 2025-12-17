@@ -1,0 +1,2673 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação da API - Pastorini API</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        header p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            z-index: 200;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            padding: 80px 20px 120px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            z-index: 100;
+        }
+        .sidebar h3 {
+            color: #00d9ff;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .sidebar ul {
+            list-style: none;
+        }
+        .sidebar li {
+            margin-bottom: 5px;
+        }
+        .sidebar a {
+            color: #ccc;
+            text-decoration: none;
+            display: block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .sidebar a:hover {
+            background: rgba(0,217,255,0.1);
+            color: #00d9ff;
+        }
+        .main-content {
+            margin-left: 300px;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 {
+            color: #00d9ff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .endpoint {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .method {
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .method.get { background: #28a745; }
+        .method.post { background: #007bff; }
+        .method.put { background: #ffc107; color: #000; }
+        .method.delete { background: #dc3545; }
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            color: #00ff88;
+            font-size: 1rem;
+        }
+        .endpoint-desc {
+            color: #aaa;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .params-table th, .params-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .params-table th {
+            color: #00d9ff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        .params-table td {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        .param-name {
+            font-family: 'Courier New', monospace;
+            color: #00ff88;
+        }
+        .param-type {
+            color: #ffc107;
+            font-size: 0.8rem;
+        }
+        .param-required {
+            color: #dc3545;
+            font-size: 0.75rem;
+        }
+        .code-block {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            overflow-x: auto;
+        }
+        .code-block pre {
+            color: #c9d1d9;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .code-block .comment { color: #8b949e; }
+        .code-block .string { color: #a5d6ff; }
+        .code-block .number { color: #79c0ff; }
+        .code-block .key { color: #ff7b72; }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+        .badge.new { background: #28a745; }
+        .badge.beta { background: #ffc107; color: #000; }
+        .copy-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.8rem;
+            float: right;
+        }
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar ao Painel</a>
+    
+    <div class="sidebar">
+        <h3>Instalação</h3>
+        <ul>
+            <li><a href="#install-docker">Docker Swarm</a></li>
+            <li><a href="#install-env">Variáveis de Ambiente</a></li>
+            <li><a href="#install-panel-key">Proteção do Painel</a></li>
+            <li><a href="#api-auth">Autenticação da API</a></li>
+        </ul>
+        
+        <h3>Instâncias</h3>
+        <ul>
+            <li><a href="#instances-list">Listar Instâncias</a></li>
+            <li><a href="#instances-create">Criar Instância</a></li>
+            <li><a href="#instances-delete">Deletar Instância</a></li>
+            <li><a href="#instances-qr">Obter QR Code</a></li>
+            <li><a href="#instances-status">Status da Instância</a></li>
+            <li><a href="#instances-public-link">Link Público QR</a></li>
+            <li><a href="#instances-public-status">Status Público</a></li>
+            <li><a href="#instances-logout">Logout</a></li>
+            <li><a href="#instances-check-number">Verificar Número</a></li>
+        </ul>
+        
+        <h3>Mensagens</h3>
+        <ul>
+            <li><a href="#msg-text">Enviar Texto</a></li>
+            <li><a href="#msg-image">Enviar Imagem</a></li>
+            <li><a href="#msg-video">Enviar Vídeo</a></li>
+            <li><a href="#msg-audio">Enviar Áudio</a></li>
+            <li><a href="#msg-document">Enviar Documento</a></li>
+            <li><a href="#msg-location">Enviar Localização</a></li>
+            <li><a href="#msg-contact">Enviar Contato</a></li>
+            <li><a href="#msg-sticker">Enviar Sticker</a></li>
+            <li><a href="#msg-reaction">Enviar Reação</a></li>
+        </ul>
+        
+        <h3>Mensagens Interativas</h3>
+        <ul>
+            <li><a href="#msg-buttons">Enviar Botões</a></li>
+            <li><a href="#msg-list">Enviar Lista</a></li>
+            <li><a href="#msg-carousel">Enviar Carrossel</a></li>
+        </ul>
+        
+        <h3>Grupos</h3>
+        <ul>
+            <li><a href="#group-create">Criar Grupo</a></li>
+            <li><a href="#group-metadata">Metadados do Grupo</a></li>
+            <li><a href="#group-invite">Código de Convite</a></li>
+            <li><a href="#group-participants">Gerenciar Participantes</a></li>
+            <li><a href="#group-settings">Configurações do Grupo</a></li>
+            <li><a href="#group-leave">Sair do Grupo</a></li>
+        </ul>
+        
+        <h3>Perfil</h3>
+        <ul>
+            <li><a href="#profile-picture">Foto de Perfil</a></li>
+            <li><a href="#profile-status">Status/Recado</a></li>
+            <li><a href="#profile-name">Nome do Perfil</a></li>
+        </ul>
+        
+        <h3>Privacidade</h3>
+        <ul>
+            <li><a href="#privacy-settings">Configurações</a></li>
+            <li><a href="#privacy-block">Bloquear/Desbloquear</a></li>
+        </ul>
+        
+        <h3>Webhook</h3>
+        <ul>
+            <li><a href="#webhook-config">Configurar Webhook</a></li>
+            <li><a href="#webhook-get">Obter Configuração</a></li>
+            <li><a href="#webhook-events">Eventos Disponíveis</a></li>
+        </ul>
+        
+        <h3>Configuração</h3>
+        <ul>
+            <li><a href="#config-storage">Storage (PostgreSQL/Redis)</a></li>
+        </ul>
+        
+        <h3>Outros</h3>
+        <ul>
+            <li><a href="#presence">Presença Online</a></li>
+            <li><a href="#read-messages">Marcar como Lido</a></li>
+            <li><a href="#labels">Labels/Etiquetas</a></li>
+        </ul>
+        
+        <h3>📋 Templates</h3>
+        <ul>
+            <li><a href="#templates-carousel">Carrossel</a></li>
+            <li><a href="#templates-buttons">Botões</a></li>
+            <li><a href="#templates-list">Lista</a></li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <header>
+            <img src="/logo-papi.png" alt="Pastorini API" style="height: 60px; margin-bottom: 15px;">
+            <h1 style="font-size: 1.8rem; color: #fff;">Pastorini API <span style="font-size: 0.9rem; background: rgba(16,185,129,0.2); color: #10b981; padding: 4px 12px; border-radius: 20px; margin-left: 10px;">v1.4</span></h1>
+            <p>Documentação completa de todas as rotas e funcionalidades disponíveis</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: #10b981;">Powered by Baileys</p>
+        </header>
+        
+        <div class="container">
+
+            <!-- INSTALAÇÃO -->
+            <div class="section" id="installation">
+                <h2><i class="fas fa-download"></i> Instalação</h2>
+                
+                <div class="endpoint" id="install-docker">
+                    <div class="endpoint-header">
+                        <span class="method post" style="background:#6366f1;">DOCKER</span>
+                        <span class="endpoint-path">Docker Swarm / Portainer</span>
+                    </div>
+                    <p class="endpoint-desc">Deploy completo com PostgreSQL, Redis e API usando Docker Swarm. Ideal para produção.</p>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">1. Pré-requisitos</h4>
+                    <ul style="color:#aaa; margin-left: 20px; line-height: 1.8;">
+                        <li>Docker Swarm inicializado (<code style="background:#222;padding:2px 6px;border-radius:4px;">docker swarm init</code>)</li>
+                        <li>Portainer (opcional, mas recomendado)</li>
+                        <li>Imagens no Docker Hub ou registry privado</li>
+                    </ul>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">2. Stack Completa</h4>
+                    <p class="endpoint-desc">Copie e cole no Portainer (Stacks → Add Stack) ou salve como <code>docker-stack.yml</code>:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>version: '3.8'
+
+services:
+  <span class="comment"># PostgreSQL - Banco de dados</span>
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: pastorini_api
+      POSTGRES_USER: pastorini
+      POSTGRES_PASSWORD: <span class="string">SUA_SENHA_SEGURA</span>
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  <span class="comment"># Use 5433 se já tiver PostgreSQL na 5432</span>
+    networks:
+      - pastorini-net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  <span class="comment"># Redis - Cache</span>
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - pastorini-net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  <span class="comment"># Pastorini API - WhatsApp API</span>
+  api:
+    image: <span class="string">SEU_USUARIO/pastorini-api:latest</span>
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - PANEL_API_KEY=<span class="string">SUA_CHAVE_PAINEL</span>  <span class="comment"># Deixe vazio para desativar</span>
+      - STORAGE_TYPE=postgres+redis
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=pastorini_api
+      - POSTGRES_USER=pastorini
+      - POSTGRES_PASSWORD=<span class="string">SUA_SENHA_SEGURA</span>
+      - POSTGRES_SSL=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LICENSE_KEY=<span class="string">SUA_CHAVE_LICENCA</span>
+      - LICENSE_ADMIN_URL=<span class="string">https://seu-servidor-licenca.com</span>
+    volumes:
+      - api_sessions:/app/sessions
+      - api_media:/app/Media
+    ports:
+      - "3000:3000"
+    networks:
+      - pastorini-net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  postgres_data:
+  redis_data:
+  api_sessions:
+  api_media:
+
+networks:
+  pastorini-net:
+    driver: overlay
+    attachable: true</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">3. Deploy via CLI (alternativa ao Portainer)</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment"># Deploy da stack</span>
+docker stack deploy -c docker-stack.yml pastorini
+
+<span class="comment"># Verificar serviços</span>
+docker service ls
+
+<span class="comment"># Ver logs da API</span>
+docker service logs pastorini_api -f
+
+<span class="comment"># Remover stack</span>
+docker stack rm pastorini</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="install-env">
+                    <div class="endpoint-header">
+                        <span class="method put" style="background:#f59e0b;">ENV</span>
+                        <span class="endpoint-path">Variáveis de Ambiente</span>
+                    </div>
+                    <p class="endpoint-desc">Todas as variáveis de ambiente disponíveis para configuração:</p>
+                    <table class="params-table">
+                        <tr><th>Variável</th><th>Descrição</th><th>Padrão</th></tr>
+                        <tr>
+                            <td><span class="param-name">PORT</span></td>
+                            <td>Porta do servidor</td>
+                            <td>3000</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">PANEL_API_KEY</span></td>
+                            <td>Chave para proteger acesso ao painel web</td>
+                            <td><em>vazio (desativado)</em></td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">STORAGE_TYPE</span></td>
+                            <td>Tipo de armazenamento: <code>file</code>, <code>postgres</code>, <code>postgres+redis</code></td>
+                            <td>file</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">POSTGRES_HOST</span></td>
+                            <td>Host do PostgreSQL</td>
+                            <td>localhost</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">POSTGRES_PORT</span></td>
+                            <td>Porta do PostgreSQL</td>
+                            <td>5432</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">POSTGRES_DB</span></td>
+                            <td>Nome do banco de dados</td>
+                            <td>pastorini_api</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">POSTGRES_USER</span></td>
+                            <td>Usuário do PostgreSQL</td>
+                            <td>postgres</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">POSTGRES_PASSWORD</span></td>
+                            <td>Senha do PostgreSQL</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">REDIS_HOST</span></td>
+                            <td>Host do Redis</td>
+                            <td>localhost</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">REDIS_PORT</span></td>
+                            <td>Porta do Redis</td>
+                            <td>6379</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">LICENSE_KEY</span></td>
+                            <td>Chave de licença para ativação do servidor</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">LICENSE_ADMIN_URL</span></td>
+                            <td>URL do servidor de validação de licenças</td>
+                            <td>-</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="endpoint" id="install-panel-key">
+                    <div class="endpoint-header">
+                        <span class="method delete" style="background:#ef4444;">🔐</span>
+                        <span class="endpoint-path">Proteção do Painel</span>
+                    </div>
+                    <p class="endpoint-desc">O painel web pode ser protegido com uma chave de acesso (API Key). Quando configurada, os usuários precisam informar a chave para acessar.</p>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Configuração</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment"># No docker-stack.yml ou .env</span>
+PANEL_API_KEY=minha-chave-secreta-123
+
+<span class="comment"># Para desativar a proteção, deixe vazio:</span>
+PANEL_API_KEY=</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Acesso</h4>
+                    <p class="endpoint-desc">Quando a proteção está ativa:</p>
+                    <ul style="color:#aaa; margin-left: 20px; line-height: 1.8;">
+                        <li>Ao acessar o painel, será exibida uma tela de login</li>
+                        <li>Digite a chave configurada em <code>PANEL_API_KEY</code></li>
+                        <li>A autenticação é armazenada em cookie seguro (24 horas)</li>
+                        <li>A chave não aparece na URL do navegador (mais seguro)</li>
+                        <li>Suporta senhas com caracteres especiais</li>
+                    </ul>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Páginas Protegidas</h4>
+                    <ul style="color:#aaa; margin-left: 20px; line-height: 1.8;">
+                        <li><code>/</code> - Painel principal</li>
+                        <li><code>/api-tester.html</code> - Testador de API</li>
+                        <li><code>/docs.html</code> - Documentação</li>
+                    </ul>
+                    <p class="endpoint-desc" style="margin-top:15px;"><strong>Nota:</strong> As rotas da API também são protegidas quando PANEL_API_KEY está configurada. Veja a seção "Autenticação da API" abaixo.</p>
+                </div>
+                
+                <div class="endpoint" id="api-auth">
+                    <div class="endpoint-header">
+                        <span class="method post" style="background:#8b5cf6;">🔑</span>
+                        <span class="endpoint-path">Autenticação da API (x-api-key)</span>
+                        <span class="badge new">IMPORTANTE</span>
+                    </div>
+                    <p class="endpoint-desc">Quando <code>PANEL_API_KEY</code> está configurada, todas as rotas da API (exceto algumas públicas) requerem autenticação. A mesma chave usada para acessar o painel é usada para autenticar as requisições da API.</p>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Como Autenticar</h4>
+                    <p class="endpoint-desc">Você pode enviar a chave de 3 formas (em ordem de preferência):</p>
+                    <table class="params-table">
+                        <tr><th>Método</th><th>Exemplo</th><th>Recomendado</th></tr>
+                        <tr>
+                            <td><span class="param-name">Header x-api-key</span></td>
+                            <td><code>x-api-key: SUA_CHAVE</code></td>
+                            <td><span style="color:#10b981;">✓ Sim</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">Header Authorization</span></td>
+                            <td><code>Authorization: Bearer SUA_CHAVE</code></td>
+                            <td><span style="color:#10b981;">✓ Sim</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">Query Parameter</span></td>
+                            <td><code>?key=SUA_CHAVE</code></td>
+                            <td><span style="color:#f59e0b;">⚠ Não (expõe na URL)</span></td>
+                        </tr>
+                    </table>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Exemplo com cURL</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment"># Usando header x-api-key (recomendado)</span>
+curl -X GET "https://seu-servidor.com/api/instances" \
+  -H "x-api-key: SUA_CHAVE"
+
+<span class="comment"># Usando Authorization Bearer</span>
+curl -X GET "https://seu-servidor.com/api/instances" \
+  -H "Authorization: Bearer SUA_CHAVE"
+
+<span class="comment"># Enviando mensagem com autenticação</span>
+curl -X POST "https://seu-servidor.com/api/instances/minha-instancia/send-text" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: SUA_CHAVE" \
+  -d '{"jid": "5511999999999@s.whatsapp.net", "text": "Olá!"}'</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Exemplo com JavaScript/Node.js</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Usando fetch</span>
+const response = await fetch('https://seu-servidor.com/api/instances', {
+  headers: {
+    'x-api-key': 'SUA_CHAVE'
+  }
+});
+const instances = await response.json();
+
+<span class="comment">// Enviando mensagem</span>
+const sendResponse = await fetch('https://seu-servidor.com/api/instances/minha-instancia/send-text', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': 'SUA_CHAVE'
+  },
+  body: JSON.stringify({
+    jid: '5511999999999@s.whatsapp.net',
+    text: 'Olá!'
+  })
+});</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Rotas Públicas (não requerem autenticação)</h4>
+                    <ul style="color:#aaa; margin-left: 20px; line-height: 1.8;">
+                        <li><code>/api/stats</code> - Estatísticas do servidor</li>
+                        <li><code>/api/license/status</code> - Status da licença</li>
+                        <li><code>/api/instances/:id/public-status</code> - Status público (para QR client)</li>
+                    </ul>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Resposta de Erro (401)</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Quando a chave não é fornecida ou é inválida</span>
+{
+  <span class="key">"error"</span>: <span class="string">"Unauthorized"</span>,
+  <span class="key">"message"</span>: <span class="string">"API key required. Provide via x-api-key header, Authorization: Bearer &lt;key&gt;, or ?key= query param"</span>
+}</pre>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);">
+                        <p style="color: #a78bfa; margin: 0;"><i class="fas fa-info-circle"></i> <strong>Dica:</strong> A chave da API é a mesma configurada em <code>PANEL_API_KEY</code>. Não existe uma chave por instância - é uma única chave global para todo o servidor.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INSTÂNCIAS -->
+            <div class="section" id="instances">
+                <h2><i class="fas fa-server"></i> Instâncias</h2>
+                
+                <div class="endpoint" id="instances-list">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances</span>
+                    </div>
+                    <p class="endpoint-desc">Lista todas as instâncias criadas com seus status atuais.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Resposta</span>
+[
+  {
+    <span class="key">"id"</span>: <span class="string">"minha-instancia"</span>,
+    <span class="key">"status"</span>: <span class="string">"CONNECTED"</span>,
+    <span class="key">"name"</span>: <span class="string">"João Silva"</span>,
+    <span class="key">"phoneNumber"</span>: <span class="string">"5511999999999"</span>
+  }
+]</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="instances-create">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances</span>
+                    </div>
+                    <p class="endpoint-desc">Cria uma nova instância do WhatsApp. Após criar, use o endpoint de QR Code para conectar.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">id</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Identificador único da instância</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"id"</span>: <span class="string">"minha-instancia"</span>
+}
+
+<span class="comment">// Resposta</span>
+{
+  <span class="key">"id"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"status"</span>: <span class="string">"CONNECTING"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="instances-qr">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/qr</span>
+                    </div>
+                    <p class="endpoint-desc">Obtém o QR Code para conectar a instância ao WhatsApp.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Resposta</span>
+{
+  <span class="key">"qrImage"</span>: <span class="string">"data:image/png;base64,..."</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="instances-status">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/status</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Obtém o status detalhado de uma instância específica.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Resposta</span>
+{
+  <span class="key">"id"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"status"</span>: <span class="string">"CONNECTED"</span>,
+  <span class="key">"name"</span>: <span class="string">"João Silva"</span>,
+  <span class="key">"phoneNumber"</span>: <span class="string">"5511999999999"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="instances-delete">
+                    <div class="endpoint-header">
+                        <span class="method delete">DELETE</span>
+                        <span class="endpoint-path">/api/instances/:id</span>
+                    </div>
+                    <p class="endpoint-desc">Remove uma instância e desconecta do WhatsApp.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Resposta</span>
+{
+  <span class="key">"success"</span>: <span class="number">true</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="instances-public-link">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/toggle-public-link</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Habilita ou desabilita o link público de QR Code. Quando habilitado, você pode compartilhar um link para que clientes escaneiem o QR Code diretamente.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">enabled</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">boolean</span></td>
+                            <td>true para habilitar, false para desabilitar</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"enabled"</span>: <span class="number">true</span>
+}
+
+<span class="comment">// Resposta</span>
+{
+  <span class="key">"success"</span>: <span class="number">true</span>,
+  <span class="key">"enabled"</span>: <span class="number">true</span>
+}
+
+<span class="comment">// Link público para compartilhar:</span>
+<span class="string">https://seu-servidor.com/qr-client.html?id=minha-instancia</span></pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="instances-public-status">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/public-status</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Obtém o status da instância para uso público (página de QR do cliente). Só funciona se o link público estiver habilitado.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Resposta (link habilitado)</span>
+{
+  <span class="key">"id"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"status"</span>: <span class="string">"QR_READY"</span>,
+  <span class="key">"qr"</span>: <span class="string">"2@abc123..."</span>,
+  <span class="key">"publicLinkEnabled"</span>: <span class="number">true</span>
+}
+
+<span class="comment">// Resposta (link desabilitado)</span>
+{
+  <span class="key">"error"</span>: <span class="string">"Public link disabled"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="instances-logout">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/logout</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Desconecta a instância do WhatsApp sem deletar os dados da sessão.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Resposta</span>
+{
+  <span class="key">"success"</span>: <span class="number">true</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="instances-check-number">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/check-number/:phone</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Verifica se um número de telefone está registrado no WhatsApp.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Exemplo: GET /api/instances/minha-instancia/check-number/5511999999999</span>
+
+<span class="comment">// Resposta (número existe)</span>
+{
+  <span class="key">"exists"</span>: <span class="number">true</span>,
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>
+}
+
+<span class="comment">// Resposta (número não existe)</span>
+{
+  <span class="key">"exists"</span>: <span class="number">false</span>,
+  <span class="key">"jid"</span>: <span class="number">null</span>
+}</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- WEBHOOK -->
+            <div class="section" id="webhook">
+                <h2><i class="fas fa-satellite-dish"></i> Webhook</h2>
+                
+                <div class="endpoint" id="webhook-config">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/webhook</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Configura o webhook para receber mensagens e eventos em tempo real. Quando uma mensagem é recebida, ela será enviada para a URL configurada.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">url</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>URL que receberá os eventos (POST)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">enabled</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">boolean</span></td>
+                            <td>Habilitar ou desabilitar o webhook</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">events</span></td>
+                            <td><span class="param-type">array</span></td>
+                            <td>Eventos para receber: ["messages", "status", "all"]</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"url"</span>: <span class="string">"https://seu-servidor.com/webhook"</span>,
+  <span class="key">"enabled"</span>: <span class="number">true</span>,
+  <span class="key">"events"</span>: [<span class="string">"messages"</span>, <span class="string">"status"</span>]
+}
+
+<span class="comment">// Resposta</span>
+{
+  <span class="key">"success"</span>: <span class="number">true</span>,
+  <span class="key">"webhook"</span>: {
+    <span class="key">"url"</span>: <span class="string">"https://seu-servidor.com/webhook"</span>,
+    <span class="key">"enabled"</span>: <span class="number">true</span>,
+    <span class="key">"events"</span>: [<span class="string">"messages"</span>, <span class="string">"status"</span>]
+  }
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="webhook-get">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/webhook</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Obtém a configuração atual do webhook.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Resposta</span>
+{
+  <span class="key">"webhook"</span>: {
+    <span class="key">"url"</span>: <span class="string">"https://seu-servidor.com/webhook"</span>,
+    <span class="key">"enabled"</span>: <span class="number">true</span>,
+    <span class="key">"events"</span>: [<span class="string">"messages"</span>, <span class="string">"status"</span>]
+  }
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="webhook-events">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">Eventos Disponíveis</span>
+                    </div>
+                    <p class="endpoint-desc">Lista de todos os eventos que podem ser configurados no webhook:</p>
+                    <h4 style="color:#10b981; margin: 15px 0 10px;"><i class="fas fa-message"></i> Mensagens</h4>
+                    <table class="params-table">
+                        <tr><th>Evento</th><th>Descrição</th></tr>
+                        <tr><td><span class="param-name">messages</span></td><td>Mensagens recebidas (texto, imagem, vídeo, áudio, documento, localização, contato, sticker)</td></tr>
+                        <tr><td><span class="param-name">message_status</span></td><td>Status de mensagens enviadas (2=enviado, 3=entregue, 4=lido)</td></tr>
+                        <tr><td><span class="param-name">message_reaction</span></td><td>Reações em mensagens (emoji adicionado/removido)</td></tr>
+                    </table>
+                    
+                    <h4 style="color:#3b82f6; margin: 20px 0 10px;"><i class="fas fa-users"></i> Grupos</h4>
+                    <table class="params-table">
+                        <tr><th>Evento</th><th>Descrição</th></tr>
+                        <tr><td><span class="param-name">group_update</span></td><td>Atualizações de grupos (nome, foto, descrição alterados)</td></tr>
+                        <tr><td><span class="param-name">group_participants</span></td><td>Participantes de grupos (entrada, saída, promoção, rebaixamento)</td></tr>
+                    </table>
+                    
+                    <h4 style="color:#f59e0b; margin: 20px 0 10px;"><i class="fas fa-user"></i> Contatos & Presença</h4>
+                    <table class="params-table">
+                        <tr><th>Evento</th><th>Descrição</th></tr>
+                        <tr><td><span class="param-name">presence</span></td><td>Presença de contatos (available, unavailable, composing, recording, paused)</td></tr>
+                        <tr><td><span class="param-name">contacts</span></td><td>Atualizações de contatos (nome, foto de perfil)</td></tr>
+                    </table>
+                    
+                    <h4 style="color:#8b5cf6; margin: 20px 0 10px;"><i class="fas fa-phone"></i> Chamadas</h4>
+                    <table class="params-table">
+                        <tr><th>Evento</th><th>Descrição</th></tr>
+                        <tr><td><span class="param-name">call</span></td><td>Chamadas de voz/vídeo (ringing, accepted, rejected, timeout)</td></tr>
+                    </table>
+                    
+                    <h4 style="color:#ec4899; margin: 20px 0 10px;"><i class="fas fa-cog"></i> Outros</h4>
+                    <table class="params-table">
+                        <tr><th>Evento</th><th>Descrição</th></tr>
+                        <tr><td><span class="param-name">chats</span></td><td>Atualizações de conversas (arquivado, fixado, silenciado)</td></tr>
+                        <tr><td><span class="param-name">labels</span></td><td>Labels/etiquetas (associação e edição)</td></tr>
+                        <tr><td><span class="param-name">history_sync</span></td><td>Sincronização de histórico (quando conecta)</td></tr>
+                        <tr><td><span class="param-name">all</span></td><td><strong>Receber TODOS os eventos</strong></td></tr>
+                    </table>
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Headers enviados em cada webhook</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>Content-Type: application/json
+X-Instance-ID: minha-instancia
+X-Event-Type: messages | message_status | message_reaction | group_update | ...</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 20px 0 10px;">Exemplos de Payload</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Mensagem recebida (messages)</span>
+{
+  <span class="key">"type"</span>: <span class="string">"message"</span>,
+  <span class="key">"instanceId"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"key"</span>: { <span class="key">"remoteJid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>, <span class="key">"id"</span>: <span class="string">"ABC123"</span>, <span class="key">"fromMe"</span>: <span class="number">false</span> },
+    <span class="key">"message"</span>: { <span class="key">"conversation"</span>: <span class="string">"Olá!"</span> },
+    <span class="key">"pushName"</span>: <span class="string">"João"</span>,
+    <span class="key">"messageTimestamp"</span>: <span class="number">1702500000</span>
+  }
+}
+
+<span class="comment">// Status de mensagem (message_status)</span>
+{
+  <span class="key">"type"</span>: <span class="string">"message_status"</span>,
+  <span class="key">"instanceId"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"key"</span>: { <span class="key">"remoteJid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>, <span class="key">"id"</span>: <span class="string">"ABC123"</span> },
+    <span class="key">"update"</span>: { <span class="key">"status"</span>: <span class="number">3</span> }  <span class="comment">// 2=enviado, 3=entregue, 4=lido</span>
+  }
+}
+
+<span class="comment">// Reação em mensagem (message_reaction)</span>
+{
+  <span class="key">"type"</span>: <span class="string">"message_reaction"</span>,
+  <span class="key">"instanceId"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"data"</span>: [{
+    <span class="key">"key"</span>: { <span class="key">"remoteJid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>, <span class="key">"id"</span>: <span class="string">"MSG_ID"</span> },
+    <span class="key">"reaction"</span>: { <span class="key">"text"</span>: <span class="string">"👍"</span>, <span class="key">"senderTimestampMs"</span>: <span class="number">1702500000</span> }
+  }]
+}
+
+<span class="comment">// Atualização de grupo (group_update)</span>
+{
+  <span class="key">"type"</span>: <span class="string">"group_update"</span>,
+  <span class="key">"instanceId"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"data"</span>: [{
+    <span class="key">"id"</span>: <span class="string">"123456789@g.us"</span>,
+    <span class="key">"subject"</span>: <span class="string">"Novo Nome do Grupo"</span>,
+    <span class="key">"desc"</span>: <span class="string">"Nova descrição"</span>
+  }]
+}
+
+<span class="comment">// Participantes de grupo (group_participants)</span>
+{
+  <span class="key">"type"</span>: <span class="string">"group_participants"</span>,
+  <span class="key">"instanceId"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="string">"123456789@g.us"</span>,
+    <span class="key">"participants"</span>: [<span class="string">"5511999999999@s.whatsapp.net"</span>],
+    <span class="key">"action"</span>: <span class="string">"add"</span>  <span class="comment">// add, remove, promote, demote</span>
+  }
+}
+
+<span class="comment">// Presença (presence)</span>
+{
+  <span class="key">"type"</span>: <span class="string">"presence"</span>,
+  <span class="key">"instanceId"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+    <span class="key">"presences"</span>: {
+      <span class="string">"5511999999999@s.whatsapp.net"</span>: { <span class="key">"lastKnownPresence"</span>: <span class="string">"composing"</span> }
+    }
+  }
+}
+
+<span class="comment">// Chamada (call)</span>
+{
+  <span class="key">"type"</span>: <span class="string">"call"</span>,
+  <span class="key">"instanceId"</span>: <span class="string">"minha-instancia"</span>,
+  <span class="key">"data"</span>: [{
+    <span class="key">"from"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+    <span class="key">"id"</span>: <span class="string">"CALL_ID"</span>,
+    <span class="key">"status"</span>: <span class="string">"ringing"</span>,  <span class="comment">// ringing, accepted, rejected, timeout</span>
+    <span class="key">"isVideo"</span>: <span class="number">false</span>,
+    <span class="key">"isGroup"</span>: <span class="number">false</span>
+  }]
+}</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CONFIGURAÇÃO -->
+            <div class="section" id="config">
+                <h2><i class="fas fa-cog"></i> Configuração</h2>
+                
+                <div class="endpoint" id="config-storage">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">Storage (PostgreSQL + Redis)</span>
+                        <span class="badge new">v1.3</span>
+                    </div>
+                    <p class="endpoint-desc">A Pastorini API suporta 3 tipos de armazenamento para sessões, configuráveis via variáveis de ambiente:</p>
+                    <table class="params-table">
+                        <tr><th>Tipo</th><th>Descrição</th><th>Recomendado para</th></tr>
+                        <tr>
+                            <td><span class="param-name">file</span></td>
+                            <td>Armazena sessões em arquivos no disco</td>
+                            <td>Desenvolvimento, até 50 instâncias</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">postgres</span></td>
+                            <td>Armazena sessões no PostgreSQL</td>
+                            <td>Produção, 50-500 instâncias</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">postgres+redis</span></td>
+                            <td>PostgreSQL + Redis como cache</td>
+                            <td>Alta escala, 500+ instâncias</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment"># Variáveis de ambiente (.env)</span>
+
+<span class="comment"># Tipo de storage: file | postgres | postgres+redis</span>
+<span class="key">STORAGE_TYPE</span>=<span class="string">postgres+redis</span>
+
+<span class="comment"># PostgreSQL</span>
+<span class="key">POSTGRES_HOST</span>=<span class="string">localhost</span>
+<span class="key">POSTGRES_PORT</span>=<span class="string">5432</span>
+<span class="key">POSTGRES_DB</span>=<span class="string">pastorini_api</span>
+<span class="key">POSTGRES_USER</span>=<span class="string">postgres</span>
+<span class="key">POSTGRES_PASSWORD</span>=<span class="string">sua_senha</span>
+
+<span class="comment"># Redis (apenas para postgres+redis)</span>
+<span class="key">REDIS_HOST</span>=<span class="string">localhost</span>
+<span class="key">REDIS_PORT</span>=<span class="string">6379</span>
+<span class="key">REDIS_PASSWORD</span>=<span class="string"></span>
+<span class="key">REDIS_DB</span>=<span class="string">0</span></pre>
+                    </div>
+                    <p class="endpoint-desc" style="margin-top: 15px;">
+                        <strong>Arquitetura com Redis:</strong> O Redis atua como cache L1 (in-memory) enquanto o PostgreSQL é o storage persistente. 
+                        Isso proporciona leituras extremamente rápidas (~1ms) com a segurança de persistência do PostgreSQL.
+                    </p>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <h4 style="color: #10b981; margin-bottom: 10px;"><i class="fas fa-rocket"></i> Setup Rápido com Docker</h4>
+                        <p style="color: #aaa; margin-bottom: 10px;">Execute um único comando para subir PostgreSQL e Redis:</p>
+                        <div class="code-block" style="margin: 0;">
+                            <pre><span class="comment"># Subir PostgreSQL + Redis</span>
+npm run setup
+
+<span class="comment"># Ou usando docker-compose diretamente</span>
+docker-compose up -d
+
+<span class="comment"># Iniciar a API</span>
+npm run server
+
+<span class="comment"># Ou tudo junto (setup + server)</span>
+npm run dev</pre>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- MENSAGENS BÁSICAS -->
+            <div class="section" id="messages">
+                <h2><i class="fas fa-comment"></i> Mensagens</h2>
+                
+                <div class="endpoint" id="msg-text">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-text</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Envia uma mensagem de texto simples.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário (ex: 5511999999999@s.whatsapp.net)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">text</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Texto da mensagem</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"text"</span>: <span class="string">"Olá! Esta é uma mensagem de teste."</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-image">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-image</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Envia uma imagem com legenda opcional.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">url</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>URL da imagem ou base64</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">caption</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Legenda da imagem</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"url"</span>: <span class="string">"https://exemplo.com/imagem.jpg"</span>,
+  <span class="key">"caption"</span>: <span class="string">"Veja esta imagem!"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-video">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-video</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Envia um vídeo com legenda opcional.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">url</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>URL do vídeo</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">caption</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Legenda do vídeo</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">gifPlayback</span></td>
+                            <td><span class="param-type">boolean</span></td>
+                            <td>Enviar como GIF (loop)</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"url"</span>: <span class="string">"https://exemplo.com/video.mp4"</span>,
+  <span class="key">"caption"</span>: <span class="string">"Confira este vídeo!"</span>,
+  <span class="key">"gifPlayback"</span>: <span class="number">false</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-audio">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-audio</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Envia um áudio (pode ser como mensagem de voz).</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">url</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>URL do áudio</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">ptt</span></td>
+                            <td><span class="param-type">boolean</span></td>
+                            <td>Enviar como mensagem de voz (push-to-talk)</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"url"</span>: <span class="string">"https://exemplo.com/audio.mp3"</span>,
+  <span class="key">"ptt"</span>: <span class="number">true</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-document">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-document</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Envia um documento (PDF, DOC, etc).</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">url</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>URL do documento</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">filename</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Nome do arquivo</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">mimetype</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Tipo MIME (ex: application/pdf)</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"url"</span>: <span class="string">"https://exemplo.com/documento.pdf"</span>,
+  <span class="key">"filename"</span>: <span class="string">"Contrato.pdf"</span>,
+  <span class="key">"mimetype"</span>: <span class="string">"application/pdf"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-location">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-location</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Envia uma localização.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">latitude</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">number</span></td>
+                            <td>Latitude</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">longitude</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">number</span></td>
+                            <td>Longitude</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">name</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Nome do local</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">address</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Endereço</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"latitude"</span>: <span class="number">-23.5505</span>,
+  <span class="key">"longitude"</span>: <span class="number">-46.6333</span>,
+  <span class="key">"name"</span>: <span class="string">"São Paulo"</span>,
+  <span class="key">"address"</span>: <span class="string">"Av. Paulista, 1000"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-contact">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-contact</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Envia um cartão de contato.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">name</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Nome do contato</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">phone</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Telefone do contato</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"name"</span>: <span class="string">"Maria Silva"</span>,
+  <span class="key">"phone"</span>: <span class="string">"+5511988888888"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-sticker">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-sticker</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Envia um sticker/figurinha.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">url</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>URL do sticker (WebP)</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"url"</span>: <span class="string">"https://exemplo.com/sticker.webp"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-reaction">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-reaction</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Envia uma reação (emoji) a uma mensagem.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>JID do chat</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">messageId</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>ID da mensagem para reagir</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">emoji</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Emoji da reação (vazio para remover)</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"messageId"</span>: <span class="string">"3EB0B430A..."</span>,
+  <span class="key">"emoji"</span>: <span class="string">"👍"</span>
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MENSAGENS INTERATIVAS -->
+            <div class="section" id="interactive">
+                <h2><i class="fas fa-hand-pointer"></i> Mensagens Interativas</h2>
+                
+                <div class="endpoint" id="msg-buttons">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-buttons</span>
+                    </div>
+                    <p class="endpoint-desc">Envia uma mensagem com botões interativos. <strong>Nota:</strong> Funciona apenas no celular, não no WhatsApp Desktop.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">text</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Texto principal da mensagem</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">footer</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Texto do rodapé</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">buttons</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">array</span></td>
+                            <td>Array de botões (ver tipos abaixo)</td>
+                        </tr>
+                    </table>
+                    
+                    <h4 style="color: #00d9ff; margin: 20px 0 10px;">Tipos de Botões:</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Botão de Resposta Rápida</span>
+{
+  <span class="key">"type"</span>: <span class="string">"reply"</span>,
+  <span class="key">"displayText"</span>: <span class="string">"Sim"</span>,
+  <span class="key">"id"</span>: <span class="string">"btn_sim"</span>
+}
+
+<span class="comment">// Botão de URL</span>
+{
+  <span class="key">"type"</span>: <span class="string">"url"</span>,
+  <span class="key">"displayText"</span>: <span class="string">"Visitar Site"</span>,
+  <span class="key">"url"</span>: <span class="string">"https://google.com"</span>
+}
+
+<span class="comment">// Botão de Ligação</span>
+{
+  <span class="key">"type"</span>: <span class="string">"call"</span>,
+  <span class="key">"displayText"</span>: <span class="string">"Ligar"</span>,
+  <span class="key">"phoneNumber"</span>: <span class="string">"+5511999999999"</span>
+}
+
+<span class="comment">// Botão de Copiar Código</span>
+{
+  <span class="key">"type"</span>: <span class="string">"copy"</span>,
+  <span class="key">"displayText"</span>: <span class="string">"Copiar Cupom"</span>,
+  <span class="key">"code"</span>: <span class="string">"DESCONTO10"</span>
+}</pre>
+                    </div>
+                    
+                    <h4 style="color: #00d9ff; margin: 20px 0 10px;">Exemplo Completo:</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"text"</span>: <span class="string">"Escolha uma opção:"</span>,
+  <span class="key">"footer"</span>: <span class="string">"Atendimento automático"</span>,
+  <span class="key">"buttons"</span>: [
+    { <span class="key">"type"</span>: <span class="string">"reply"</span>, <span class="key">"displayText"</span>: <span class="string">"Sim"</span>, <span class="key">"id"</span>: <span class="string">"yes"</span> },
+    { <span class="key">"type"</span>: <span class="string">"reply"</span>, <span class="key">"displayText"</span>: <span class="string">"Não"</span>, <span class="key">"id"</span>: <span class="string">"no"</span> },
+    { <span class="key">"type"</span>: <span class="string">"url"</span>, <span class="key">"displayText"</span>: <span class="string">"Site"</span>, <span class="key">"url"</span>: <span class="string">"https://google.com"</span> }
+  ]
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-list">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-list</span>
+                    </div>
+                    <p class="endpoint-desc">Envia uma mensagem com lista de opções. <strong>Nota:</strong> Funciona apenas no celular, não no WhatsApp Desktop.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">title</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Título da mensagem</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">text</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Texto principal</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">footer</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Texto do rodapé</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">buttonText</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Texto do botão que abre a lista</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">sections</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">array</span></td>
+                            <td>Seções com opções da lista</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"title"</span>: <span class="string">"Menu Principal"</span>,
+  <span class="key">"text"</span>: <span class="string">"Selecione uma opção abaixo:"</span>,
+  <span class="key">"footer"</span>: <span class="string">"Atendimento 24h"</span>,
+  <span class="key">"buttonText"</span>: <span class="string">"Ver Opções"</span>,
+  <span class="key">"sections"</span>: [
+    {
+      <span class="key">"title"</span>: <span class="string">"Produtos"</span>,
+      <span class="key">"rows"</span>: [
+        { <span class="key">"title"</span>: <span class="string">"Produto A"</span>, <span class="key">"description"</span>: <span class="string">"Descrição do produto A"</span>, <span class="key">"rowId"</span>: <span class="string">"prod_a"</span> },
+        { <span class="key">"title"</span>: <span class="string">"Produto B"</span>, <span class="key">"description"</span>: <span class="string">"Descrição do produto B"</span>, <span class="key">"rowId"</span>: <span class="string">"prod_b"</span> }
+      ]
+    },
+    {
+      <span class="key">"title"</span>: <span class="string">"Suporte"</span>,
+      <span class="key">"rows"</span>: [
+        { <span class="key">"title"</span>: <span class="string">"Falar com Atendente"</span>, <span class="key">"description"</span>: <span class="string">"Atendimento humano"</span>, <span class="key">"rowId"</span>: <span class="string">"human"</span> }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="msg-carousel">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/send-carousel</span>
+                    </div>
+                    <p class="endpoint-desc">Envia um carrossel de cards com imagens e botões. <strong>Nota:</strong> Funciona apenas no celular.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Número do destinatário</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">cards</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">array</span></td>
+                            <td>Array de cards (máximo 10)</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"cards"</span>: [
+    {
+      <span class="key">"header"</span>: {
+        <span class="key">"title"</span>: <span class="string">"Produto 1"</span>,
+        <span class="key">"subtitle"</span>: <span class="string">"Oferta especial"</span>,
+        <span class="key">"imageUrl"</span>: <span class="string">"https://exemplo.com/img1.jpg"</span>
+      },
+      <span class="key">"body"</span>: <span class="string">"Descrição do produto 1"</span>,
+      <span class="key">"footer"</span>: <span class="string">"R$ 99,90"</span>,
+      <span class="key">"buttons"</span>: [
+        { <span class="key">"displayText"</span>: <span class="string">"Comprar"</span>, <span class="key">"urlButton"</span>: { <span class="key">"url"</span>: <span class="string">"https://loja.com/p1"</span> } },
+        { <span class="key">"displayText"</span>: <span class="string">"Eu Quero"</span>, <span class="key">"quickReplyButton"</span>: { <span class="key">"id"</span>: <span class="string">"want_p1"</span> } }
+      ]
+    },
+    {
+      <span class="key">"header"</span>: {
+        <span class="key">"title"</span>: <span class="string">"Produto 2"</span>,
+        <span class="key">"imageUrl"</span>: <span class="string">"https://exemplo.com/img2.jpg"</span>
+      },
+      <span class="key">"body"</span>: <span class="string">"Descrição do produto 2"</span>,
+      <span class="key">"footer"</span>: <span class="string">"R$ 149,90"</span>,
+      <span class="key">"buttons"</span>: [
+        { <span class="key">"displayText"</span>: <span class="string">"Ligar"</span>, <span class="key">"callButton"</span>: { <span class="key">"phoneNumber"</span>: <span class="string">"+5511999999999"</span> } }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- GRUPOS -->
+            <div class="section" id="groups">
+                <h2><i class="fas fa-users"></i> Grupos</h2>
+                
+                <div class="endpoint" id="group-create">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/groups/create</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Cria um novo grupo.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">name</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Nome do grupo</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">participants</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">array</span></td>
+                            <td>Lista de JIDs dos participantes</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"name"</span>: <span class="string">"Meu Grupo"</span>,
+  <span class="key">"participants"</span>: [
+    <span class="string">"5511999999999@s.whatsapp.net"</span>,
+    <span class="string">"5511888888888@s.whatsapp.net"</span>
+  ]
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="group-metadata">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/groups/:groupId/metadata</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Obtém metadados de um grupo (nome, descrição, participantes, etc).</p>
+                </div>
+                
+                <div class="endpoint" id="group-invite">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/groups/:groupId/invite-code</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Obtém o código de convite do grupo.</p>
+                </div>
+                
+                <div class="endpoint" id="group-participants">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/groups/:groupId/participants</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Gerencia participantes do grupo (adicionar, remover, promover, rebaixar).</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">action</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Ação: add, remove, promote, demote</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">participants</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">array</span></td>
+                            <td>Lista de JIDs</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Adicionar participantes</span>
+{
+  <span class="key">"action"</span>: <span class="string">"add"</span>,
+  <span class="key">"participants"</span>: [<span class="string">"5511999999999@s.whatsapp.net"</span>]
+}
+
+<span class="comment">// Remover participantes</span>
+{
+  <span class="key">"action"</span>: <span class="string">"remove"</span>,
+  <span class="key">"participants"</span>: [<span class="string">"5511999999999@s.whatsapp.net"</span>]
+}
+
+<span class="comment">// Promover a admin</span>
+{
+  <span class="key">"action"</span>: <span class="string">"promote"</span>,
+  <span class="key">"participants"</span>: [<span class="string">"5511999999999@s.whatsapp.net"</span>]
+}
+
+<span class="comment">// Rebaixar de admin</span>
+{
+  <span class="key">"action"</span>: <span class="string">"demote"</span>,
+  <span class="key">"participants"</span>: [<span class="string">"5511999999999@s.whatsapp.net"</span>]
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="group-settings">
+                    <div class="endpoint-header">
+                        <span class="method put">PUT</span>
+                        <span class="endpoint-path">/api/instances/:id/groups/:groupId/settings</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Atualiza configurações do grupo.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">subject</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Nome do grupo</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">description</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Descrição do grupo</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">announce</span></td>
+                            <td><span class="param-type">boolean</span></td>
+                            <td>Apenas admins enviam mensagens</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">restrict</span></td>
+                            <td><span class="param-type">boolean</span></td>
+                            <td>Apenas admins editam info</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="endpoint" id="group-leave">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/groups/:groupId/leave</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Sai do grupo.</p>
+                </div>
+                
+                <div class="endpoint" id="group-list">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/groups</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Lista todos os grupos que você participa.</p>
+                </div>
+            </div>
+
+            <!-- PERFIL -->
+            <div class="section" id="profile">
+                <h2><i class="fas fa-user"></i> Perfil</h2>
+                
+                <div class="endpoint" id="profile-picture">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/profile-picture/:jid</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Obtém a URL da foto de perfil de um contato ou grupo.</p>
+                </div>
+                
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method put">PUT</span>
+                        <span class="endpoint-path">/api/instances/:id/profile-picture</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Atualiza sua foto de perfil.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">url</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>URL da imagem ou base64</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="endpoint" id="profile-status">
+                    <div class="endpoint-header">
+                        <span class="method put">PUT</span>
+                        <span class="endpoint-path">/api/instances/:id/profile-status</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Atualiza seu recado/status.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">status</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Texto do recado</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="endpoint" id="profile-name">
+                    <div class="endpoint-header">
+                        <span class="method put">PUT</span>
+                        <span class="endpoint-path">/api/instances/:id/profile-name</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Atualiza seu nome de perfil.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">name</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Novo nome</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- PRIVACIDADE -->
+            <div class="section" id="privacy">
+                <h2><i class="fas fa-shield-alt"></i> Privacidade</h2>
+                
+                <div class="endpoint" id="privacy-settings">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/privacy-settings</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Obtém as configurações de privacidade atuais.</p>
+                </div>
+                
+                <div class="endpoint" id="privacy-block">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/block</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Bloqueia ou desbloqueia um contato.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>JID do contato</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">action</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>block ou unblock</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- OUTROS -->
+            <div class="section" id="others">
+                <h2><i class="fas fa-ellipsis-h"></i> Outros</h2>
+                
+                <div class="endpoint" id="presence">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/presence</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Atualiza a presença (online, digitando, gravando áudio).</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>JID do chat</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">presence</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>available, unavailable, composing, recording, paused</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Mostrar "digitando..."</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"presence"</span>: <span class="string">"composing"</span>
+}
+
+<span class="comment">// Mostrar "gravando áudio..."</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"presence"</span>: <span class="string">"recording"</span>
+}
+
+<span class="comment">// Ficar online</span>
+{
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+  <span class="key">"presence"</span>: <span class="string">"available"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="read-messages">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/read-messages</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Marca mensagens como lidas.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">keys</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">array</span></td>
+                            <td>Array de chaves de mensagens</td>
+                        </tr>
+                    </table>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Requisição</span>
+{
+  <span class="key">"keys"</span>: [
+    {
+      <span class="key">"remoteJid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>,
+      <span class="key">"id"</span>: <span class="string">"3EB0B430A..."</span>,
+      <span class="key">"fromMe"</span>: <span class="number">false</span>
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="labels">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/labels</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Gerencia etiquetas/labels (WhatsApp Business).</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>JID do chat</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">labelId</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>ID da etiqueta</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">action</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>add ou remove</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="endpoint" id="check-number">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/instances/:id/check-number/:phone</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Verifica se um número está registrado no WhatsApp.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre><span class="comment">// Resposta</span>
+{
+  <span class="key">"exists"</span>: <span class="number">true</span>,
+  <span class="key">"jid"</span>: <span class="string">"5511999999999@s.whatsapp.net"</span>
+}</pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint" id="delete-message">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/delete-message</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Deleta uma mensagem.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>JID do chat</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">messageId</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>ID da mensagem</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">fromMe</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">boolean</span></td>
+                            <td>Se a mensagem foi enviada por você</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="endpoint" id="edit-message">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/edit-message</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Edita uma mensagem enviada por você.</p>
+                    <table class="params-table">
+                        <tr><th>Parâmetro</th><th>Tipo</th><th>Descrição</th></tr>
+                        <tr>
+                            <td><span class="param-name">jid</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>JID do chat</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">messageId</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>ID da mensagem</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">newText</span> <span class="param-required">*obrigatório</span></td>
+                            <td><span class="param-type">string</span></td>
+                            <td>Novo texto da mensagem</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="endpoint" id="logout">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/instances/:id/logout</span>
+                        <span class="badge new">NOVO</span>
+                    </div>
+                    <p class="endpoint-desc">Desconecta a instância do WhatsApp (logout).</p>
+                </div>
+            </div>
+            
+            <!-- INFORMAÇÕES ADICIONAIS -->
+            <div class="section">
+                <h2><i class="fas fa-info-circle"></i> Informações Importantes</h2>
+                
+                <div class="endpoint">
+                    <h4 style="color: #00d9ff; margin-bottom: 15px;">Formato do JID</h4>
+                    <p class="endpoint-desc">O JID (Jabber ID) é o identificador único de um contato ou grupo no WhatsApp.</p>
+                    <div class="code-block">
+                        <pre><span class="comment">// Contato individual</span>
+<span class="string">"5511999999999@s.whatsapp.net"</span>
+
+<span class="comment">// Grupo</span>
+<span class="string">"123456789012345678@g.us"</span>
+
+<span class="comment">// Status/Stories</span>
+<span class="string">"status@broadcast"</span></pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint">
+                    <h4 style="color: #00d9ff; margin-bottom: 15px;">Status das Instâncias</h4>
+                    <table class="params-table">
+                        <tr><th>Status</th><th>Descrição</th></tr>
+                        <tr><td><span class="param-name">CONNECTING</span></td><td>Conectando ao WhatsApp</td></tr>
+                        <tr><td><span class="param-name">QR_READY</span></td><td>QR Code pronto para escanear</td></tr>
+                        <tr><td><span class="param-name">CONNECTED</span></td><td>Conectado e pronto para uso</td></tr>
+                        <tr><td><span class="param-name">DISCONNECTED</span></td><td>Desconectado</td></tr>
+                    </table>
+                </div>
+                
+            </div>
+            
+            <!-- TEMPLATES -->
+            <div class="section" id="templates">
+                <h2><i class="fas fa-clipboard-list"></i> Templates Prontos</h2>
+                <p class="endpoint-desc" style="margin-bottom: 25px;">Templates prontos para copiar e usar nas suas requisições. Basta copiar o JSON e ajustar os dados conforme sua necessidade.</p>
+                
+                <!-- TEMPLATES DE CARROSSEL -->
+                <div class="endpoint" id="templates-carousel">
+                    <div class="endpoint-header">
+                        <span class="method post" style="background:#8b5cf6;">📱</span>
+                        <span class="endpoint-path">Templates de Carrossel</span>
+                    </div>
+                    <p class="endpoint-desc">O carrossel permite enviar múltiplos cards horizontais com imagem, título, descrição e botões. Ideal para catálogos de produtos, cardápios, imóveis e serviços.</p>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">🛒 E-commerce - Catálogo de Produtos</h4>
+                    <p class="endpoint-desc">Perfeito para lojas online mostrarem produtos com preços e botões de compra.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "🛍️ Ofertas Especiais",
+  "body": "Confira nossos produtos em destaque!",
+  "footer": "Loja Virtual - Entrega em todo Brasil",
+  "cards": [
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400",
+      "title": "📱 iPhone 15 Pro Max",
+      "body": "256GB - Titânio Natural\n💰 R$ 8.999,00 à vista\n💳 12x R$ 833,25",
+      "footer": "Frete Grátis",
+      "buttons": [
+        { "id": "comprar_iphone", "title": "🛒 Comprar Agora" },
+        { "id": "info_iphone", "title": "📋 Mais Detalhes" }
+      ]
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400",
+      "title": "💻 MacBook Air M3",
+      "body": "8GB RAM - 256GB SSD\n💰 R$ 12.499,00 à vista\n💳 12x R$ 1.166,58",
+      "footer": "Garantia Apple 1 ano",
+      "buttons": [
+        { "id": "comprar_macbook", "title": "🛒 Comprar Agora" },
+        { "id": "info_macbook", "title": "📋 Mais Detalhes" }
+      ]
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400",
+      "title": "⌚ Apple Watch Series 9",
+      "body": "GPS + Cellular - 45mm\n💰 R$ 5.299,00 à vista\n💳 12x R$ 491,58",
+      "footer": "Pronta Entrega",
+      "buttons": [
+        { "id": "comprar_watch", "title": "🛒 Comprar Agora" },
+        { "id": "info_watch", "title": "📋 Mais Detalhes" }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">🍕 Restaurante - Cardápio Digital</h4>
+                    <p class="endpoint-desc">Ideal para restaurantes, pizzarias e delivery mostrarem seus pratos.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "🍽️ Cardápio do Dia",
+  "body": "Escolha seu prato favorito!",
+  "footer": "Restaurante Sabor & Arte - Delivery",
+  "cards": [
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1544025162-d76694265947?w=400",
+      "title": "🥩 Picanha na Brasa",
+      "body": "Picanha grelhada 400g\nAcompanha: arroz, feijão tropeiro, farofa e vinagrete\n⭐ Mais Pedido!",
+      "footer": "R$ 89,90 - Serve 2 pessoas",
+      "buttons": [
+        { "id": "pedir_picanha", "title": "🛒 Pedir Agora" },
+        { "id": "add_bebida", "title": "🍺 Adicionar Bebida" }
+      ]
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=400",
+      "title": "🍝 Lasanha Bolonhesa",
+      "body": "Massa fresca artesanal\nMolho bolonhesa caseiro\nQueijo gratinado",
+      "footer": "R$ 49,90 - Porção Individual",
+      "buttons": [
+        { "id": "pedir_lasanha", "title": "🛒 Pedir Agora" },
+        { "id": "ver_massas", "title": "🍝 Ver Outras Massas" }
+      ]
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400",
+      "title": "🍣 Combo Sushi",
+      "body": "30 peças variadas:\n• 10 Hot Rolls\n• 10 Uramakis\n• 10 Niguiris",
+      "footer": "R$ 79,90 - Serve 2 pessoas",
+      "buttons": [
+        { "id": "pedir_sushi", "title": "🛒 Pedir Agora" },
+        { "id": "personalizar", "title": "✏️ Personalizar" }
+      ]
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=400",
+      "title": "🍰 Petit Gateau",
+      "body": "Bolo de chocolate com centro cremoso\nAcompanha sorvete de creme",
+      "footer": "R$ 29,90",
+      "buttons": [
+        { "id": "pedir_sobremesa", "title": "🛒 Adicionar" },
+        { "id": "ver_sobremesas", "title": "🍨 Mais Sobremesas" }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">🏠 Imobiliária - Imóveis Disponíveis</h4>
+                    <p class="endpoint-desc">Para corretores e imobiliárias apresentarem imóveis aos clientes.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "🏠 Imóveis Selecionados",
+  "body": "Encontramos opções perfeitas para você!",
+  "footer": "Imobiliária Premium - CRECI 12345",
+  "cards": [
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400",
+      "title": "🏢 Apartamento Alto Padrão",
+      "body": "📍 Jardins - São Paulo\n🛏️ 3 suítes | 🚗 2 vagas\n📐 180m² | 🏊 Lazer completo",
+      "footer": "R$ 2.500.000 ou R$ 12.000/mês",
+      "buttons": [
+        { "id": "agendar_visita_1", "title": "📅 Agendar Visita" },
+        { "id": "fotos_1", "title": "📸 Ver Fotos" }
+      ]
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400",
+      "title": "🏡 Casa em Condomínio",
+      "body": "📍 Alphaville - Barueri\n🛏️ 4 suítes | 🚗 4 vagas\n📐 450m² | 🌳 Terreno 800m²",
+      "footer": "R$ 4.200.000",
+      "buttons": [
+        { "id": "agendar_visita_2", "title": "📅 Agendar Visita" },
+        { "id": "fotos_2", "title": "📸 Ver Fotos" }
+      ]
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400",
+      "title": "🏬 Sala Comercial",
+      "body": "📍 Av. Paulista - SP\n📐 120m² | 🚗 2 vagas\n🏢 Edifício Triple A\n✨ Pronta para uso",
+      "footer": "R$ 18.000/mês",
+      "buttons": [
+        { "id": "agendar_visita_3", "title": "📅 Agendar Visita" },
+        { "id": "proposta_3", "title": "💼 Fazer Proposta" }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">💼 Serviços - Catálogo de Planos</h4>
+                    <p class="endpoint-desc">Para empresas de serviços apresentarem seus planos e pacotes.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "📋 Nossos Planos",
+  "body": "Escolha o plano ideal para sua empresa",
+  "footer": "Marketing Digital Pro",
+  "cards": [
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400",
+      "title": "🥉 Plano Starter",
+      "body": "✅ 10 posts/mês\n✅ 2 redes sociais\n✅ Relatório mensal\n✅ Suporte por email",
+      "footer": "R$ 497/mês",
+      "buttons": [
+        { "id": "contratar_starter", "title": "✅ Contratar" },
+        { "id": "info_starter", "title": "ℹ️ Saiba Mais" }
+      ]
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400",
+      "title": "🥈 Plano Professional",
+      "body": "✅ 20 posts/mês\n✅ 4 redes sociais\n✅ Gestão de tráfego\n✅ Suporte prioritário\n⭐ Mais Popular!",
+      "footer": "R$ 997/mês",
+      "buttons": [
+        { "id": "contratar_pro", "title": "✅ Contratar" },
+        { "id": "info_pro", "title": "ℹ️ Saiba Mais" }
+      ]
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400",
+      "title": "🥇 Plano Enterprise",
+      "body": "✅ Posts ilimitados\n✅ Todas as redes\n✅ Equipe dedicada\n✅ Consultoria mensal\n✅ Suporte 24/7",
+      "footer": "R$ 2.497/mês",
+      "buttons": [
+        { "id": "contratar_enterprise", "title": "✅ Contratar" },
+        { "id": "reuniao", "title": "📞 Agendar Reunião" }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+                
+                <!-- TEMPLATES DE BOTÕES -->
+                <div class="endpoint" id="templates-buttons">
+                    <div class="endpoint-header">
+                        <span class="method post" style="background:#10b981;">🔘</span>
+                        <span class="endpoint-path">Templates de Botões</span>
+                    </div>
+                    <p class="endpoint-desc">Botões permitem respostas rápidas do usuário. Máximo de 3 botões por mensagem.</p>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">📞 Atendimento - Menu Inicial</h4>
+                    <p class="endpoint-desc">Menu de opções para início de atendimento.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "👋 Olá! Bem-vindo(a)!",
+  "body": "Sou o assistente virtual da Empresa XYZ.\n\nComo posso ajudar você hoje?",
+  "footer": "Atendimento 24h",
+  "buttons": [
+    { "id": "vendas", "title": "🛒 Fazer Pedido" },
+    { "id": "suporte", "title": "🔧 Suporte Técnico" },
+    { "id": "financeiro", "title": "💰 Financeiro" }
+  ]
+}</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">✅ Confirmação de Pedido</h4>
+                    <p class="endpoint-desc">Solicitar confirmação do cliente.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "📦 Confirme seu Pedido",
+  "body": "Pedido #12345\n\n🛒 Itens:\n• 2x Camiseta Básica - R$ 79,80\n• 1x Calça Jeans - R$ 149,90\n\n💰 Total: R$ 229,70\n📍 Entrega: Rua das Flores, 123",
+  "footer": "Prazo de entrega: 3-5 dias úteis",
+  "buttons": [
+    { "id": "confirmar_pedido", "title": "✅ Confirmar Pedido" },
+    { "id": "alterar_pedido", "title": "✏️ Alterar Pedido" },
+    { "id": "cancelar_pedido", "title": "❌ Cancelar" }
+  ]
+}</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">⭐ Pesquisa de Satisfação</h4>
+                    <p class="endpoint-desc">Coletar feedback do cliente após atendimento.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "⭐ Avalie nosso Atendimento",
+  "body": "Seu feedback é muito importante para nós!\n\nComo foi sua experiência com nosso atendimento hoje?",
+  "footer": "Obrigado por ser nosso cliente!",
+  "buttons": [
+    { "id": "avaliacao_otimo", "title": "😍 Excelente" },
+    { "id": "avaliacao_bom", "title": "😊 Bom" },
+    { "id": "avaliacao_ruim", "title": "😞 Precisa Melhorar" }
+  ]
+}</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">📅 Agendamento</h4>
+                    <p class="endpoint-desc">Opções de horários para agendamento.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "📅 Agende sua Consulta",
+  "body": "Dr. João Silva - Cardiologista\n\nHorários disponíveis para amanhã:",
+  "footer": "Clínica Saúde Total",
+  "buttons": [
+    { "id": "horario_09h", "title": "🕘 09:00" },
+    { "id": "horario_14h", "title": "🕑 14:00" },
+    { "id": "horario_16h", "title": "🕓 16:00" }
+  ]
+}</pre>
+                    </div>
+                </div>
+                
+                <!-- TEMPLATES DE LISTA -->
+                <div class="endpoint" id="templates-list">
+                    <div class="endpoint-header">
+                        <span class="method post" style="background:#f59e0b;">📋</span>
+                        <span class="endpoint-path">Templates de Lista</span>
+                    </div>
+                    <p class="endpoint-desc">Listas permitem organizar muitas opções em seções. Ideal quando há mais de 3 opções.</p>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">🍔 Cardápio Completo</h4>
+                    <p class="endpoint-desc">Menu de restaurante organizado por categorias.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "🍔 Cardápio Completo",
+  "body": "Escolha uma categoria para ver os itens disponíveis",
+  "footer": "Delivery - Taxa grátis acima de R$ 50",
+  "buttonText": "📋 Ver Cardápio",
+  "sections": [
+    {
+      "title": "🍔 Hambúrgueres",
+      "rows": [
+        { "id": "burger_classico", "title": "Clássico", "description": "Pão, carne 180g, queijo, alface, tomate - R$ 28,90" },
+        { "id": "burger_bacon", "title": "Bacon Lovers", "description": "Pão, carne 180g, bacon crocante, cheddar - R$ 34,90" },
+        { "id": "burger_vegano", "title": "Veggie Burger", "description": "Pão integral, hambúrguer de grão de bico - R$ 32,90" }
+      ]
+    },
+    {
+      "title": "🍕 Pizzas",
+      "rows": [
+        { "id": "pizza_margherita", "title": "Margherita", "description": "Molho, mussarela, tomate, manjericão - R$ 49,90" },
+        { "id": "pizza_pepperoni", "title": "Pepperoni", "description": "Molho, mussarela, pepperoni - R$ 54,90" },
+        { "id": "pizza_4queijos", "title": "Quatro Queijos", "description": "Mussarela, gorgonzola, parmesão, catupiry - R$ 59,90" }
+      ]
+    },
+    {
+      "title": "🥤 Bebidas",
+      "rows": [
+        { "id": "bebida_refri", "title": "Refrigerante 350ml", "description": "Coca, Guaraná, Sprite - R$ 6,90" },
+        { "id": "bebida_suco", "title": "Suco Natural 500ml", "description": "Laranja, Limão, Maracujá - R$ 12,90" },
+        { "id": "bebida_agua", "title": "Água Mineral", "description": "Com ou sem gás - R$ 4,90" }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">🏢 Departamentos da Empresa</h4>
+                    <p class="endpoint-desc">Direcionar cliente para o setor correto.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "🏢 Central de Atendimento",
+  "body": "Selecione o departamento desejado para ser direcionado ao atendente especializado.",
+  "footer": "Empresa XYZ - Atendimento Humanizado",
+  "buttonText": "📞 Escolher Departamento",
+  "sections": [
+    {
+      "title": "💼 Comercial",
+      "rows": [
+        { "id": "comercial_orcamento", "title": "Solicitar Orçamento", "description": "Receba uma proposta personalizada" },
+        { "id": "comercial_catalogo", "title": "Catálogo de Produtos", "description": "Conheça nossa linha completa" },
+        { "id": "comercial_parceria", "title": "Seja um Parceiro", "description": "Programa de revendedores" }
+      ]
+    },
+    {
+      "title": "🔧 Suporte Técnico",
+      "rows": [
+        { "id": "suporte_instalacao", "title": "Instalação", "description": "Ajuda com instalação do produto" },
+        { "id": "suporte_problema", "title": "Reportar Problema", "description": "Produto com defeito ou erro" },
+        { "id": "suporte_garantia", "title": "Garantia", "description": "Informações sobre garantia" }
+      ]
+    },
+    {
+      "title": "💰 Financeiro",
+      "rows": [
+        { "id": "financeiro_boleto", "title": "2ª Via de Boleto", "description": "Solicitar nova via do boleto" },
+        { "id": "financeiro_nota", "title": "Nota Fiscal", "description": "Solicitar nota fiscal" },
+        { "id": "financeiro_pagamento", "title": "Formas de Pagamento", "description": "Opções disponíveis" }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">📅 Agendamento de Serviços</h4>
+                    <p class="endpoint-desc">Seleção de serviço e horário para agendamento.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "💇 Agende seu Horário",
+  "body": "Escolha o serviço desejado. Após a seleção, enviaremos os horários disponíveis.",
+  "footer": "Salão Beauty Hair - Desde 2010",
+  "buttonText": "✂️ Ver Serviços",
+  "sections": [
+    {
+      "title": "✂️ Cortes",
+      "rows": [
+        { "id": "corte_feminino", "title": "Corte Feminino", "description": "A partir de R$ 80,00 - 45min" },
+        { "id": "corte_masculino", "title": "Corte Masculino", "description": "R$ 45,00 - 30min" },
+        { "id": "corte_infantil", "title": "Corte Infantil", "description": "R$ 35,00 - 20min" }
+      ]
+    },
+    {
+      "title": "🎨 Coloração",
+      "rows": [
+        { "id": "cor_tintura", "title": "Tintura Completa", "description": "A partir de R$ 150,00 - 2h" },
+        { "id": "cor_mechas", "title": "Mechas/Luzes", "description": "A partir de R$ 200,00 - 3h" },
+        { "id": "cor_retoque", "title": "Retoque de Raiz", "description": "R$ 80,00 - 1h" }
+      ]
+    },
+    {
+      "title": "💅 Unhas",
+      "rows": [
+        { "id": "unha_manicure", "title": "Manicure", "description": "R$ 35,00 - 40min" },
+        { "id": "unha_pedicure", "title": "Pedicure", "description": "R$ 40,00 - 50min" },
+        { "id": "unha_combo", "title": "Combo Mani + Pedi", "description": "R$ 65,00 - 1h30" }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                    
+                    <h4 style="color:#00d9ff; margin: 25px 0 15px;">❓ FAQ - Perguntas Frequentes</h4>
+                    <p class="endpoint-desc">Autoatendimento com dúvidas mais comuns.</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copiar</button>
+                        <pre>{
+  "jid": "5511999999999@s.whatsapp.net",
+  "title": "❓ Central de Ajuda",
+  "body": "Encontre respostas para as dúvidas mais frequentes ou fale com um atendente.",
+  "footer": "Suporte 24 horas",
+  "buttonText": "🔍 Buscar Ajuda",
+  "sections": [
+    {
+      "title": "📦 Pedidos e Entregas",
+      "rows": [
+        { "id": "faq_rastrear", "title": "Rastrear meu pedido", "description": "Acompanhe sua entrega em tempo real" },
+        { "id": "faq_prazo", "title": "Prazo de entrega", "description": "Quanto tempo demora para chegar?" },
+        { "id": "faq_frete", "title": "Calcular frete", "description": "Valores e opções de envio" }
+      ]
+    },
+    {
+      "title": "💳 Pagamentos",
+      "rows": [
+        { "id": "faq_formas", "title": "Formas de pagamento", "description": "Cartão, boleto, Pix e mais" },
+        { "id": "faq_parcelamento", "title": "Parcelamento", "description": "Em quantas vezes posso parcelar?" },
+        { "id": "faq_cupom", "title": "Usar cupom de desconto", "description": "Como aplicar meu cupom" }
+      ]
+    },
+    {
+      "title": "🔄 Trocas e Devoluções",
+      "rows": [
+        { "id": "faq_trocar", "title": "Trocar produto", "description": "Política de troca" },
+        { "id": "faq_devolver", "title": "Devolver produto", "description": "Como solicitar devolução" },
+        { "id": "faq_reembolso", "title": "Prazo de reembolso", "description": "Quando recebo meu dinheiro?" }
+      ]
+    },
+    {
+      "title": "👤 Minha Conta",
+      "rows": [
+        { "id": "faq_senha", "title": "Esqueci minha senha", "description": "Recuperar acesso à conta" },
+        { "id": "faq_dados", "title": "Alterar dados cadastrais", "description": "Atualizar endereço, telefone, etc" },
+        { "id": "faq_atendente", "title": "Falar com atendente", "description": "Transferir para humano" }
+      ]
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+        </div>
+    </div>
+    
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('pre').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy"></i> Copiar';
+                }, 2000);
+            });
+        }
+        
+        // Smooth scroll for sidebar links
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Preserve API key in navigation links
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKey = urlParams.get('key');
+            if (apiKey) {
+                document.querySelectorAll('a[href]').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && href.startsWith('/') && !href.includes('?key=')) {
+                        link.setAttribute('href', href + '?key=' + apiKey);
+                    }
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Espaço para o footer fixo -->
+    <div style="height: 50px;"></div>
+    
+    <!-- Footer Fixo -->
+    <footer id="mainFooter" style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 12px 20px; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 0.8rem; z-index: 100;">
+        <span id="footerCredits">© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys</span>
+    </footer>
+    
+    <script>
+        // Proteção de créditos do footer
+        (function() {
+            const fc = '© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys';
+            const fe = document.getElementById('footerCredits');
+            const ff = document.getElementById('mainFooter');
+            function checkFooter() {
+                if (!fe || !ff || fe.innerHTML !== fc || ff.style.display === 'none' || ff.style.visibility === 'hidden' || ff.style.opacity === '0') {
+                    if (ff) { ff.style.cssText = 'position:fixed;bottom:0;left:0;right:0;text-align:center;padding:12px 20px;background:rgba(10,10,10,0.95);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1);color:#888;font-size:0.8rem;z-index:100;display:block;visibility:visible;opacity:1;'; }
+                    if (fe) fe.innerHTML = fc;
+                    else if (ff) ff.innerHTML = '<span id="footerCredits">' + fc + '</span>';
+                }
+            }
+            checkFooter();
+            setInterval(checkFooter, 2000);
+            new MutationObserver(checkFooter).observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+        })();
+    </script>
+</body>
+</html>

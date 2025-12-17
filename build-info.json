@@ -1,0 +1,12 @@
+{
+  "hash": "ec6fd4d5312039e1870e11d7e71dbfc8b902d2d394d3b0e61e43106b347886ca",
+  "files": [
+    "lib/License/licenseManager.js:5726a6369ca69636",
+    "lib/Utils/messages.js:da44b81c39cb32cf",
+    "lib/Socket/messages-send.js:ac47584efbe39c0c",
+    "server.ts:20d006ac1ce3451a",
+    "instanceManager.ts:1bdfd1adddb7de73"
+  ],
+  "buildDate": "2025-12-17T20:10:03.001Z",
+  "version": "1.4.0"
+}

@@ -1,0 +1,135 @@
+# ╔═══════════════════════════════════════════════════════════════╗
+# ║                      PASTORINI API                            ║
+# ║              Docker Swarm Stack - Portainer Ready             ║
+# ║                     © 2025 Pastorini                          ║
+# ╚═══════════════════════════════════════════════════════════════╝
+#
+# Stack pronta para deploy no Portainer
+# PostgreSQL na porta 5433 (para não conflitar com outro existente)
+#
+
+version: '3.8'
+
+services:
+  # ═══════════════════════════════════════════════════════════════
+  # PostgreSQL - Banco de dados (porta 5433)
+  # ═══════════════════════════════════════════════════════════════
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: pastorini_api
+      POSTGRES_USER: pastorini
+      POSTGRES_PASSWORD: pastorini123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Expõe na porta 5433 externamente
+    networks:
+      - pastorini-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pastorini -d pastorini_api"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ═══════════════════════════════════════════════════════════════
+  # Redis - Cache
+  # ═══════════════════════════════════════════════════════════════
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - pastorini-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ═══════════════════════════════════════════════════════════════
+  # Pastorini API - WhatsApp API
+  # ═══════════════════════════════════════════════════════════════
+  api:
+    image: pastorini-api:latest
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - PANEL_API_KEY=           # Chave para acessar o painel (deixe vazio para desativar)
+      - STORAGE_TYPE=postgres+redis
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432        # Porta INTERNA do container (sempre 5432)
+      - POSTGRES_DB=pastorini_api
+      - POSTGRES_USER=pastorini
+      - POSTGRES_PASSWORD=pastorini123
+      - POSTGRES_SSL=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+      - LICENSE_KEY=D9F17CC0-65E4B37F-848D7130-5DDB3208
+      - LICENSE_ADMIN_URL=http://admin:4000
+
+    volumes:
+      - api_sessions:/app/sessions
+      - api_media:/app/Media
+      - api_auth:/app/baileys_auth_info
+    ports:
+      - "3000:3000"
+    networks:
+      - pastorini-net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+      resources:
+        limits:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  
+# ═══════════════════════════════════════════════════════════════
+# Volumes
+# ═══════════════════════════════════════════════════════════════
+volumes:
+  postgres_data:
+  redis_data:
+  api_sessions:
+  api_media:
+  api_auth:
+  admin_data:
+
+# ═══════════════════════════════════════════════════════════════
+# Network
+# ═══════════════════════════════════════════════════════════════
+networks:
+  pastorini-net:
+    driver: overlay
+    attachable: true

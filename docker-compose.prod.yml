@@ -1,0 +1,133 @@
+# ╔═══════════════════════════════════════════════════════════════╗
+# ║                      PASTORINI API                            ║
+# ║              Production Docker Stack                          ║
+# ║                     © 2025 Pastorini                          ║
+# ╚═══════════════════════════════════════════════════════════════╝
+#
+# USO:
+#   docker-compose -f docker-compose.prod.yml up -d
+#
+# SERVIÇOS:
+#   - pastorini-api:   API principal (porta 3000)
+#   - pastorini-admin: Painel admin (porta 4000)
+#   - postgres:        Banco de dados (porta 5432)
+#   - redis:           Cache (porta 6379)
+#
+
+version: '3.8'
+
+services:
+  # ═══════════════════════════════════════════════════════════════
+  # PostgreSQL - Banco de dados principal
+  # ═══════════════════════════════════════════════════════════════
+  postgres:
+    image: postgres:15-alpine
+    container_name: pastorini-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pastorini_api
+      POSTGRES_USER: pastorini
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pastorini123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pastorini -d pastorini_api"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pastorini-network
+
+  # ═══════════════════════════════════════════════════════════════
+  # Redis - Cache de alta performance
+  # ═══════════════════════════════════════════════════════════════
+  redis:
+    image: redis:7-alpine
+    container_name: pastorini-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pastorini-network
+
+  # ═══════════════════════════════════════════════════════════════
+  # Pastorini API - Sistema principal
+  # ═══════════════════════════════════════════════════════════════
+  pastorini-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pastorini-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      
+      # Storage
+      STORAGE_TYPE: postgres+redis
+      
+      # PostgreSQL
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: pastorini_api
+      POSTGRES_USER: pastorini
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pastorini123}
+      POSTGRES_SSL: "false"
+      
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DB: 0
+      
+      # License (OBRIGATÓRIO - configure no .env)
+      LICENSE_KEY: ${LICENSE_KEY}
+      LICENSE_ADMIN_URL: ${LICENSE_ADMIN_URL:-http://pastorini-admin:4000}
+    volumes:
+      - api_sessions:/app/sessions
+      - api_media:/app/Media
+      - api_auth:/app/baileys_auth_info
+    ports:
+      - "3000:3000"
+    networks:
+      - pastorini-network
+
+ 
+# ═══════════════════════════════════════════════════════════════
+# Volumes persistentes
+# ═══════════════════════════════════════════════════════════════
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  api_sessions:
+    driver: local
+  api_media:
+    driver: local
+  api_auth:
+    driver: local
+  admin_data:
+    driver: local
+
+# ═══════════════════════════════════════════════════════════════
+# Rede interna
+# ═══════════════════════════════════════════════════════════════
+networks:
+  pastorini-network:
+    driver: bridge
