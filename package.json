@@ -43,7 +43,7 @@
     "setup": "docker-compose up -d",
     "setup:down": "docker-compose down",
     "setup:logs": "docker-compose logs -f",
-    "dev": "npm run setup && tsx ./server.ts",
+    "dev": "tsx ./server.ts",
     "admin": "cd papiAdmin && npm start",
     "admin:install": "cd papiAdmin && npm install",
     "admin:dev": "cd papiAdmin && npm run dev"

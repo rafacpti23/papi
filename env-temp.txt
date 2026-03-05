@@ -1,0 +1,24 @@
+# Configuração PAPI para Integração Whaticket
+# Quando rodando via Docker Compose, as variáveis abaixo são sobrescritas pelo docker-compose.yml
+
+STORAGE_TYPE=postgres+redis
+
+# Hostnames internos do Docker
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=papi_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=master123
+POSTGRES_SSL=false
+
+# Redis Config (Host interno do Docker)
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_DB=1
+
+# Server Config (Porta interna do container)
+PORT=3000
+
+# License Config
+LICENSE_KEY=23311D91-F021A78B-E5CD6DFD-9BC6775C
+LICENSE_ADMIN_URL=https://padmin.intrategica.com.br/

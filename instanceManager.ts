@@ -19,10 +19,10 @@ import fs from 'fs'
 import path from 'path'
 import * as QRCode from 'qrcode'
 import { fileURLToPath } from 'url'
-import { 
-    initDatabase, 
-    getPostgresPool, 
-    getRedisClient, 
+import {
+    initDatabase,
+    getPostgresPool,
+    getRedisClient,
     getStorageType,
     getDatabaseConfig
 } from './lib/Store/database.js'
@@ -73,21 +73,21 @@ class InstanceManager {
      */
     public async initialize(): Promise<void> {
         if (this.initialized) return
-        
+
         const config = getDatabaseConfig()
         console.log(`[InstanceManager] Initializing with storage: ${config.storageType}`)
-        
+
         if (config.storageType !== 'file') {
             await initDatabase(config)
         }
-        
+
         await this.loadExistingSessions()
         this.initialized = true
     }
 
     private async loadExistingSessions(): Promise<void> {
         const storageType = getStorageType()
-        
+
         if (storageType === 'file') {
             // Load from file system
             const files = fs.readdirSync(this.sessionsDir)
@@ -121,7 +121,7 @@ class InstanceManager {
         if (instance) {
             // Marca como deletando para evitar reconexão automática
             instance.isDeleting = true
-            
+
             if (instance.socket) {
                 try {
                     // Logout para desconectar corretamente
@@ -139,7 +139,7 @@ class InstanceManager {
         }
 
         const storageType = getStorageType()
-        
+
         if (storageType === 'file') {
             const sessionPath = path.join(this.sessionsDir, id)
             if (fs.existsSync(sessionPath)) {
@@ -157,7 +157,7 @@ class InstanceManager {
                 await deleteRedisCachedSession(redis, pool, id)
             }
         }
-        
+
         console.log(`[${id}] Instance deleted successfully`)
     }
 
@@ -170,7 +170,7 @@ class InstanceManager {
         const storageType = getStorageType()
         let state: any
         let saveCreds: () => Promise<void>
-        
+
         if (storageType === 'postgres+redis') {
             const pool = getPostgresPool()
             const redis = getRedisClient()
@@ -239,8 +239,15 @@ class InstanceManager {
 
         sock.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect, qr } = update
-            
+
             console.log(`[${id}] Connection update:`, { connection, hasQr: !!qr })
+
+            // Enviar para webhook se configurado
+            await this.sendWebhook(id, 'connection', {
+                type: 'connection',
+                instanceId: id,
+                data: { connection, qr }
+            })
 
             if (qr) {
                 console.log(`[${id}] QR Code received`);
@@ -257,10 +264,10 @@ class InstanceManager {
                     console.log(`[${id}] Instance is being deleted, skipping reconnect`)
                     return
                 }
-                
+
                 const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode
                 const shouldReconnect = statusCode !== DisconnectReason.loggedOut
-                
+
                 console.log(`[${id}] Connection closed. StatusCode: ${statusCode}, shouldReconnect: ${shouldReconnect}`)
 
                 if (shouldReconnect) {
@@ -286,24 +293,24 @@ class InstanceManager {
         // Listener para mensagens recebidas
         sock.ev.on('messages.upsert', async ({ messages, type }) => {
             if (type !== 'notify') return
-            
+
             for (const msg of messages) {
                 // Ignora mensagens enviadas por nós mesmos
                 if (msg.key.fromMe) continue
-                
+
                 // Ignora mensagens de reação (são tratadas pelo evento messages.reaction)
                 if (msg.message?.reactionMessage) {
                     console.log(`[${id}] Reaction message ignored in messages.upsert (handled by messages.reaction)`)
                     continue
                 }
-                
+
                 // Ignora mensagens de protocolo/sistema
                 if (msg.message?.protocolMessage || msg.message?.senderKeyDistributionMessage) {
                     continue
                 }
-                
+
                 console.log(`[${id}] New message received:`, msg.key.remoteJid)
-                
+
                 // Envia para webhook se configurado
                 await this.sendWebhook(id, 'messages', {
                     type: 'message',
@@ -465,7 +472,7 @@ class InstanceManager {
     private async sendWebhook(instanceId: string, eventType: string, payload: any): Promise<void> {
         const instance = this.instances.get(instanceId)
         if (!instance?.webhook?.enabled || !instance.webhook.url) return
-        
+
         // Verifica se o evento está habilitado
         if (!instance.webhook.events.includes(eventType) && !instance.webhook.events.includes('all')) {
             return
@@ -481,7 +488,7 @@ class InstanceManager {
                 },
                 body: JSON.stringify(payload)
             })
-            
+
             if (!response.ok) {
                 console.log(`[${instanceId}] Webhook failed: ${response.status}`)
             } else {

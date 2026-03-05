@@ -5,10 +5,10 @@ WORKDIR /app
 # habilita yarn v4 (corepack)
 RUN corepack enable
 
-COPY package.json yarn.lock ./
+COPY package.json package-lock.json ./
 
-# instala dependências exatamente como o projeto define
-RUN yarn install --immutable
+# instala dependências
+RUN npm install
 
 COPY . .
 
@@ -18,4 +18,4 @@ ENV TZ=America/Sao_Paulo
 
 EXPOSE 8090
 
-CMD ["yarn", "server"]
+CMD ["npm", "run", "server"]

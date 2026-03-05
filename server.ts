@@ -22,7 +22,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT = 3000
+const PORT = process.env.PORT || 3003
 
 // API Key for panel access (optional)
 const PANEL_API_KEY = process.env.PANEL_API_KEY || ''
@@ -40,37 +40,37 @@ const panelAuthMiddleware = (req: Request, res: Response, next: NextFunction) =>
     if (!PANEL_API_KEY) {
         return next()
     }
-    
+
     // Allow API routes (they have their own auth middleware below)
     if (req.path.startsWith('/api/')) {
         return next()
     }
-    
+
     // Allow static assets (css, js, images, fonts)
     if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
         return next()
     }
-    
+
     // Protected pages
     const protectedPages = ['/', '/index.html', '/api-tester.html', '/docs.html']
     if (!protectedPages.includes(req.path)) {
         return next()
     }
-    
+
     // Check for API key in multiple places:
     // 1. Cookie (preferred - secure)
     // 2. Query param: ?key=xxx
     const cookieKey = req.cookies?.panelKey
     const queryKey = req.query.key as string
-    
+
     // Valid key via cookie - allow access
     if (cookieKey && cookieKey === PANEL_API_KEY) {
         return next()
     }
-    
+
     // If key provided via query param and is valid, set cookie and redirect to clean URL
     if (queryKey && queryKey === PANEL_API_KEY) {
-        res.cookie('panelKey', queryKey, { 
+        res.cookie('panelKey', queryKey, {
             httpOnly: false, // Allow JS to read for API calls
             secure: false,   // Allow HTTP for development
             sameSite: 'lax',
@@ -79,7 +79,7 @@ const panelAuthMiddleware = (req: Request, res: Response, next: NextFunction) =>
         // Store in session for API calls
         return res.redirect(req.path)
     }
-    
+
     // Invalid key provided via query
     if (queryKey && queryKey !== PANEL_API_KEY) {
         return res.status(401).send(`
@@ -95,7 +95,7 @@ const panelAuthMiddleware = (req: Request, res: Response, next: NextFunction) =>
             </html>
         `)
     }
-    
+
     // No key - show login form
     return res.send(`
         <!DOCTYPE html>
@@ -133,12 +133,12 @@ const apiAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
     if (!PANEL_API_KEY) {
         return next()
     }
-    
+
     // Only protect /api/ routes
     if (!req.path.startsWith('/api/')) {
         return next()
     }
-    
+
     // Public API routes that don't require authentication
     const publicApiRoutes = [
         '/api/stats',                    // Server stats (for monitoring)
@@ -148,22 +148,22 @@ const apiAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
         '/api/panel/auth',               // Panel authentication (login)
         '/api/panel/logout',             // Panel logout
     ]
-    
+
     // Check if it's a public route
     if (publicApiRoutes.some(route => req.path === route)) {
         return next()
     }
-    
+
     // Public status for QR client (check pattern /api/instances/:id/public-status)
     if (req.path.match(/^\/api\/instances\/[^/]+\/public-status$/)) {
         return next()
     }
-    
+
     // Public QR for client (check pattern /api/instances/:id/qr and verify referer is qr-client)
     if (req.path.match(/^\/api\/instances\/[^/]+\/qr$/) && req.headers.referer?.includes('qr-client.html')) {
         return next()
     }
-    
+
     // Check for API key in multiple places:
     // 1. Header: x-api-key
     // 2. Header: Authorization: Bearer <key>
@@ -172,14 +172,14 @@ const apiAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers['authorization']
     const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null
     const queryKey = req.query.key as string
-    
+
     const providedKey = headerKey || bearerKey || queryKey
-    
+
     // Valid key - allow access
     if (providedKey && providedKey === PANEL_API_KEY) {
         return next()
     }
-    
+
     // No key or invalid key - return 401
     return res.status(401).json({
         error: 'Unauthorized',
@@ -196,11 +196,11 @@ const licenseMiddleware = (req: Request, res: Response, next: NextFunction) => {
     // Allow public routes
     const publicPaths = ['/api/license/status', '/api/instances/:id/public-status', '/api/stats']
     const isPublicPath = publicPaths.some(p => req.path.includes(p.replace(':id', '')))
-    
+
     if (isPublicPath || !req.path.startsWith('/api/')) {
         return next()
     }
-    
+
     if (!licenseManager.isAllowed()) {
         const status = licenseManager.getStatus()
         return res.status(403).json({
@@ -209,7 +209,7 @@ const licenseMiddleware = (req: Request, res: Response, next: NextFunction) => {
             message: status.message
         })
     }
-    
+
     next()
 }
 
@@ -218,22 +218,22 @@ app.use(licenseMiddleware)
 // Panel authentication endpoint (POST to avoid key in URL)
 app.post('/api/panel/auth', (req: Request, res: Response) => {
     const { key } = req.body
-    
+
     if (!PANEL_API_KEY) {
         return res.json({ success: true, message: 'No authentication required' })
     }
-    
+
     if (key && key === PANEL_API_KEY) {
         // Set secure cookie
-        res.cookie('panelKey', key, { 
-            httpOnly: true, 
+        res.cookie('panelKey', key, {
+            httpOnly: true,
             secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
             sameSite: 'strict',
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
         })
         return res.json({ success: true })
     }
-    
+
     return res.status(401).json({ error: 'Invalid key' })
 })
 
@@ -258,47 +258,47 @@ app.post('/api/panel/logout', (req: Request, res: Response) => {
  */
 function normalizeJid(phone: string): string {
     if (!phone) return phone
-    
+
     // Se já é um JID de grupo, retorna como está
     if (phone.includes('@g.us') || phone.includes('@broadcast') || phone.includes('@lid')) {
         return phone
     }
-    
+
     // Remove o sufixo @s.whatsapp.net se existir
     let number = phone.replace('@s.whatsapp.net', '').replace('@c.us', '')
-    
+
     // Remove caracteres não numéricos (exceto +)
     number = number.replace(/[^\d+]/g, '')
-    
+
     // Remove o + do início se existir
     number = number.replace(/^\+/, '')
-    
+
     // Tratamento especial para números brasileiros
     if (number.startsWith('55')) {
         const withoutCountry = number.substring(2) // Remove o 55
-        
+
         // Verifica se é um número de celular brasileiro com 9º dígito
         // Formato com 9: DDD (2) + 9 + número (8) = 11 dígitos após o 55
         // Formato sem 9: DDD (2) + número (8) = 10 dígitos após o 55
-        
+
         if (withoutCountry.length === 11) {
             const ddd = withoutCountry.substring(0, 2)
             const ninthDigit = withoutCountry.substring(2, 3)
             const restOfNumber = withoutCountry.substring(3)
-            
+
             // Se o terceiro dígito é 9 e o número tem 11 dígitos, pode ser o 9º dígito extra
             // Verifica se o número após o 9 começa com 9, 8, 7 (típico de celulares)
             if (ninthDigit === '9') {
                 const firstDigitAfterNine = restOfNumber.substring(0, 1)
-                
+
                 // Se após remover o 9, o número começa com 9, 8 ou 7, é celular
                 // Remove o 9 extra para DDDs que não precisam
                 // DDDs de SP (11-19) geralmente precisam do 9
                 // Outros DDDs podem ou não precisar
-                
+
                 // Estratégia: tentar primeiro sem o 9 extra para DDDs fora de SP
                 const dddNum = parseInt(ddd)
-                
+
                 // Para DDDs fora de SP (20+), remove o 9 se presente
                 // Para DDDs de SP (11-19), mantém o 9
                 if (dddNum >= 20 && ['9', '8', '7'].includes(firstDigitAfterNine)) {
@@ -310,7 +310,7 @@ function normalizeJid(phone: string): string {
         }
         // Se tem 10 dígitos após o 55, está no formato correto (sem 9 extra)
     }
-    
+
     return `${number}@s.whatsapp.net`
 }
 
@@ -321,17 +321,17 @@ function normalizeJid(phone: string): string {
 async function resolveJid(socket: any, phone: string): Promise<string> {
     const normalizedJid = normalizeJid(phone)
     console.log(`[JID] Iniciando resolução: ${phone} -> normalizado: ${normalizedJid}`)
-    
+
     try {
         // Tenta verificar se o número existe
         const numberOnly = normalizedJid.replace('@s.whatsapp.net', '')
         console.log(`[JID] Verificando número: ${numberOnly}`)
-        
+
         const results = await socket.onWhatsApp(numberOnly)
         console.log(`[JID] Resultado onWhatsApp:`, JSON.stringify(results, null, 2))
-        
+
         const [result] = results || []
-        
+
         if (result?.exists && result?.jid) {
             console.log(`[JID] ✓ Número verificado: ${phone} -> ${result.jid}`)
             // Verifica se é LID
@@ -340,9 +340,9 @@ async function resolveJid(socket: any, phone: string): Promise<string> {
             }
             return result.jid
         }
-        
+
         console.log(`[JID] Número não encontrado diretamente, tentando variações...`)
-        
+
         // Se não encontrou, tenta com/sem o 9
         const number = numberOnly
         if (number.startsWith('55') && number.length === 12) {
@@ -364,12 +364,12 @@ async function resolveJid(socket: any, phone: string): Promise<string> {
                 return resultWithoutNine.jid
             }
         }
-        
+
         console.log(`[JID] ✗ Número não encontrado em nenhuma variação`)
     } catch (error) {
         console.log(`[JID] ✗ Erro ao verificar número:`, error)
     }
-    
+
     // Retorna o JID normalizado se não conseguiu verificar
     console.log(`[JID] Usando JID normalizado (não verificado): ${normalizedJid}`)
     return normalizedJid
@@ -519,7 +519,7 @@ app.post('/api/instances/:id/send-carousel', async (req: Request, res: Response)
         const resolvedJid = await resolveJid(instance.socket, jid)
         console.log('[Carousel] JID Original:', jid);
         console.log('[Carousel] JID Resolvido:', resolvedJid);
-        
+
         // Enviar diretamente como interactiveMessage (sem viewOnceMessage wrapper)
         // Isso pode funcionar melhor em dispositivos iOS
         const messageContent = {
@@ -527,7 +527,7 @@ app.post('/api/instances/:id/send-carousel', async (req: Request, res: Response)
         };
 
         console.log('[Carousel] Message Content (sem viewOnce):', JSON.stringify(messageContent, null, 2));
-        
+
         await instance.socket.relayMessage(resolvedJid, messageContent, {});
         console.log('[Carousel] Message sent successfully to:', resolvedJid);
         res.json({ success: true, jidOriginal: jid, jidResolved: resolvedJid })
@@ -552,7 +552,7 @@ app.post('/api/instances/:id/send-list', async (req: Request, res: Response) => 
 
         console.log('[List] Sending via sendMessage...');
         console.log('[List] Content:', JSON.stringify(listInteractive, null, 2));
-        
+
         // Usar sendMessage que processa corretamente o interactiveMessage
         await instance.socket.sendMessage(resolvedJid, {
             viewOnceMessage: {
@@ -561,7 +561,7 @@ app.post('/api/instances/:id/send-list', async (req: Request, res: Response) => 
                 }
             }
         } as any);
-        
+
         console.log('[List] Message sent successfully to:', resolvedJid);
         res.json({ success: true })
     } catch (error) {
@@ -585,7 +585,7 @@ app.post('/api/instances/:id/send-buttons', async (req: Request, res: Response) 
 
         console.log('[Buttons] Sending via sendMessage...');
         console.log('[Buttons] Content:', JSON.stringify(buttonsInteractive, null, 2));
-        
+
         // Usar sendMessage que processa corretamente o interactiveMessage
         await instance.socket.sendMessage(resolvedJid, {
             viewOnceMessage: {
@@ -594,7 +594,7 @@ app.post('/api/instances/:id/send-buttons', async (req: Request, res: Response) 
                 }
             }
         } as any);
-        
+
         console.log('[Buttons] Message sent successfully to:', resolvedJid);
         res.json({ success: true })
     } catch (error) {
@@ -609,10 +609,10 @@ app.post('/api/instances/:id/send-buttons', async (req: Request, res: Response) 
 app.get('/api/instances/:id/status', (req: Request, res: Response) => {
     const id = req.params.id
     if (!id) return res.status(400).json({ error: 'ID is required' })
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance) return res.status(404).json({ error: 'Instance not found' })
-    
+
     const { socket, ...rest } = instance as any
     res.json(rest)
 })
@@ -621,10 +621,10 @@ app.get('/api/instances/:id/status', (req: Request, res: Response) => {
 app.post('/api/instances/:id/send-text', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, text } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const resolvedJid = await resolveJid(instance.socket, jid)
         await instance.socket.sendMessage(resolvedJid, { text })
@@ -638,10 +638,10 @@ app.post('/api/instances/:id/send-text', async (req: Request, res: Response) => 
 app.post('/api/instances/:id/send-image', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, url, caption } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const resolvedJid = await resolveJid(instance.socket, jid)
         await instance.socket.sendMessage(resolvedJid, { image: { url }, caption })
@@ -655,10 +655,10 @@ app.post('/api/instances/:id/send-image', async (req: Request, res: Response) =>
 app.post('/api/instances/:id/send-video', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, url, caption, gifPlayback } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const resolvedJid = await resolveJid(instance.socket, jid)
         await instance.socket.sendMessage(resolvedJid, { video: { url }, caption, gifPlayback })
@@ -672,10 +672,10 @@ app.post('/api/instances/:id/send-video', async (req: Request, res: Response) =>
 app.post('/api/instances/:id/send-audio', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, url, ptt } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const resolvedJid = await resolveJid(instance.socket, jid)
         await instance.socket.sendMessage(resolvedJid, { audio: { url }, ptt })
@@ -689,10 +689,10 @@ app.post('/api/instances/:id/send-audio', async (req: Request, res: Response) =>
 app.post('/api/instances/:id/send-document', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, url, filename, mimetype } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const resolvedJid = await resolveJid(instance.socket, jid)
         await instance.socket.sendMessage(resolvedJid, { document: { url }, fileName: filename, mimetype })
@@ -706,13 +706,13 @@ app.post('/api/instances/:id/send-document', async (req: Request, res: Response)
 app.post('/api/instances/:id/send-location', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, latitude, longitude, name, address } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const resolvedJid = await resolveJid(instance.socket, jid)
-        await instance.socket.sendMessage(resolvedJid, { 
+        await instance.socket.sendMessage(resolvedJid, {
             location: { degreesLatitude: latitude, degreesLongitude: longitude, name, address }
         })
         res.json({ success: true })
@@ -725,14 +725,14 @@ app.post('/api/instances/:id/send-location', async (req: Request, res: Response)
 app.post('/api/instances/:id/send-contact', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, name, phone } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const resolvedJid = await resolveJid(instance.socket, jid)
         const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;type=CELL;type=VOICE;waid=${phone.replace(/\D/g, '')}:${phone}\nEND:VCARD`
-        await instance.socket.sendMessage(resolvedJid, { 
+        await instance.socket.sendMessage(resolvedJid, {
             contacts: { displayName: name, contacts: [{ vcard }] }
         })
         res.json({ success: true })
@@ -745,13 +745,13 @@ app.post('/api/instances/:id/send-contact', async (req: Request, res: Response) 
 app.post('/api/instances/:id/send-reaction', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, messageId, emoji } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const resolvedJid = await resolveJid(instance.socket, jid)
-        await instance.socket.sendMessage(resolvedJid, { 
+        await instance.socket.sendMessage(resolvedJid, {
             react: { text: emoji, key: { remoteJid: resolvedJid, id: messageId } }
         })
         res.json({ success: true })
@@ -766,10 +766,10 @@ app.post('/api/instances/:id/send-reaction', async (req: Request, res: Response)
 app.post('/api/instances/:id/groups/create', async (req: Request, res: Response) => {
     const id = req.params.id
     const { name, participants } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const result = await instance.socket.groupCreate(name, participants)
         res.json({ success: true, group: result })
@@ -781,10 +781,10 @@ app.post('/api/instances/:id/groups/create', async (req: Request, res: Response)
 // Get group metadata
 app.get('/api/instances/:id/groups/:groupId/metadata', async (req: Request, res: Response) => {
     const { id, groupId } = req.params
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const metadata = await instance.socket.groupMetadata(groupId)
         res.json(metadata)
@@ -796,10 +796,10 @@ app.get('/api/instances/:id/groups/:groupId/metadata', async (req: Request, res:
 // Get group invite code
 app.get('/api/instances/:id/groups/:groupId/invite-code', async (req: Request, res: Response) => {
     const { id, groupId } = req.params
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const code = await instance.socket.groupInviteCode(groupId)
         res.json({ code, link: `https://chat.whatsapp.com/${code}` })
@@ -812,10 +812,10 @@ app.get('/api/instances/:id/groups/:groupId/invite-code', async (req: Request, r
 app.post('/api/instances/:id/groups/:groupId/participants', async (req: Request, res: Response) => {
     const { id, groupId } = req.params
     const { action, participants } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const result = await instance.socket.groupParticipantsUpdate(groupId, participants, action)
         res.json({ success: true, result })
@@ -828,10 +828,10 @@ app.post('/api/instances/:id/groups/:groupId/participants', async (req: Request,
 app.put('/api/instances/:id/groups/:groupId/settings', async (req: Request, res: Response) => {
     const { id, groupId } = req.params
     const { subject, description, announce, restrict } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         if (subject) await instance.socket.groupUpdateSubject(groupId, subject)
         if (description !== undefined) await instance.socket.groupUpdateDescription(groupId, description)
@@ -846,10 +846,10 @@ app.put('/api/instances/:id/groups/:groupId/settings', async (req: Request, res:
 // Leave group
 app.post('/api/instances/:id/groups/:groupId/leave', async (req: Request, res: Response) => {
     const { id, groupId } = req.params
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         await instance.socket.groupLeave(groupId)
         res.json({ success: true })
@@ -863,10 +863,10 @@ app.post('/api/instances/:id/groups/:groupId/leave', async (req: Request, res: R
 // Get profile picture
 app.get('/api/instances/:id/profile-picture/:jid', async (req: Request, res: Response) => {
     const { id, jid } = req.params
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const url = await instance.socket.profilePictureUrl(jid, 'image')
         res.json({ url })
@@ -879,10 +879,10 @@ app.get('/api/instances/:id/profile-picture/:jid', async (req: Request, res: Res
 app.put('/api/instances/:id/profile-picture', async (req: Request, res: Response) => {
     const id = req.params.id
     const { url } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         await instance.socket.updateProfilePicture(instance.socket.user?.id, { url })
         res.json({ success: true })
@@ -895,10 +895,10 @@ app.put('/api/instances/:id/profile-picture', async (req: Request, res: Response
 app.put('/api/instances/:id/profile-status', async (req: Request, res: Response) => {
     const id = req.params.id
     const { status } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         await instance.socket.updateProfileStatus(status)
         res.json({ success: true })
@@ -911,10 +911,10 @@ app.put('/api/instances/:id/profile-status', async (req: Request, res: Response)
 app.put('/api/instances/:id/profile-name', async (req: Request, res: Response) => {
     const id = req.params.id
     const { name } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         await instance.socket.updateProfileName(name)
         res.json({ success: true })
@@ -928,10 +928,10 @@ app.put('/api/instances/:id/profile-name', async (req: Request, res: Response) =
 // Get privacy settings
 app.get('/api/instances/:id/privacy-settings', async (req: Request, res: Response) => {
     const id = req.params.id
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const settings = await instance.socket.fetchPrivacySettings()
         res.json(settings)
@@ -944,10 +944,10 @@ app.get('/api/instances/:id/privacy-settings', async (req: Request, res: Respons
 app.post('/api/instances/:id/block', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, action } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         await instance.socket.updateBlockStatus(jid, action)
         res.json({ success: true })
@@ -962,10 +962,10 @@ app.post('/api/instances/:id/block', async (req: Request, res: Response) => {
 app.post('/api/instances/:id/presence', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, presence } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         await instance.socket.sendPresenceUpdate(presence, jid)
         res.json({ success: true })
@@ -978,10 +978,10 @@ app.post('/api/instances/:id/presence', async (req: Request, res: Response) => {
 app.post('/api/instances/:id/read-messages', async (req: Request, res: Response) => {
     const id = req.params.id
     const { keys } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         await instance.socket.readMessages(keys)
         res.json({ success: true })
@@ -994,10 +994,10 @@ app.post('/api/instances/:id/read-messages', async (req: Request, res: Response)
 app.post('/api/instances/:id/labels', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, labelId, action } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         if (action === 'add') {
             await instance.socket.addChatLabel(jid, labelId)
@@ -1014,10 +1014,10 @@ app.post('/api/instances/:id/labels', async (req: Request, res: Response) => {
 app.post('/api/instances/:id/send-sticker', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, url } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const resolvedJid = await resolveJid(instance.socket, jid)
         await instance.socket.sendMessage(resolvedJid, { sticker: { url } })
@@ -1030,10 +1030,10 @@ app.post('/api/instances/:id/send-sticker', async (req: Request, res: Response) 
 // Get all groups
 app.get('/api/instances/:id/groups', async (req: Request, res: Response) => {
     const id = req.params.id
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const groups = await instance.socket.groupFetchAllParticipating()
         res.json(groups)
@@ -1045,10 +1045,10 @@ app.get('/api/instances/:id/groups', async (req: Request, res: Response) => {
 // Get blocked contacts
 app.get('/api/instances/:id/blocked', async (req: Request, res: Response) => {
     const id = req.params.id
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const blocked = await instance.socket.fetchBlocklist()
         res.json(blocked)
@@ -1061,10 +1061,10 @@ app.get('/api/instances/:id/blocked', async (req: Request, res: Response) => {
 app.post('/api/instances/:id/delete-message', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, messageId, fromMe } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         await instance.socket.sendMessage(jid, { delete: { remoteJid: jid, id: messageId, fromMe } })
         res.json({ success: true })
@@ -1077,14 +1077,14 @@ app.post('/api/instances/:id/delete-message', async (req: Request, res: Response
 app.post('/api/instances/:id/edit-message', async (req: Request, res: Response) => {
     const id = req.params.id
     const { jid, messageId, newText } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
-        await instance.socket.sendMessage(jid, { 
-            text: newText, 
-            edit: { remoteJid: jid, id: messageId, fromMe: true } 
+        await instance.socket.sendMessage(jid, {
+            text: newText,
+            edit: { remoteJid: jid, id: messageId, fromMe: true }
         })
         res.json({ success: true })
     } catch (error) {
@@ -1095,10 +1095,10 @@ app.post('/api/instances/:id/edit-message', async (req: Request, res: Response) 
 // Check if number exists on WhatsApp
 app.get('/api/instances/:id/check-number/:phone', async (req: Request, res: Response) => {
     const { id, phone } = req.params
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         const [result] = await instance.socket.onWhatsApp(phone)
         res.json({ exists: !!result?.exists, jid: result?.jid })
@@ -1110,10 +1110,10 @@ app.get('/api/instances/:id/check-number/:phone', async (req: Request, res: Resp
 // Logout instance (disconnect without deleting)
 app.post('/api/instances/:id/logout', async (req: Request, res: Response) => {
     const id = req.params.id
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance?.socket) return res.status(404).json({ error: 'Instance not found or not connected' })
-    
+
     try {
         await instance.socket.logout()
         res.json({ success: true })
@@ -1126,10 +1126,10 @@ app.post('/api/instances/:id/logout', async (req: Request, res: Response) => {
 app.post('/api/instances/:id/toggle-public-link', (req: Request, res: Response) => {
     const id = req.params.id
     const { enabled } = req.body
-    
+
     const success = instanceManager.togglePublicLink(id, enabled)
     if (!success) return res.status(404).json({ error: 'Instance not found' })
-    
+
     res.json({ success: true, enabled })
 })
 
@@ -1137,42 +1137,42 @@ app.post('/api/instances/:id/toggle-public-link', (req: Request, res: Response) 
 app.post('/api/instances/:id/webhook', (req: Request, res: Response) => {
     const id = req.params.id
     const { url, enabled, events } = req.body
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance) return res.status(404).json({ error: 'Instance not found' })
-    
+
     const success = instanceManager.setWebhook(id, {
         url: url || '',
         enabled: enabled ?? false,
         events: events || ['messages', 'status']
     })
-    
+
     if (!success) return res.status(500).json({ error: 'Failed to configure webhook' })
-    
+
     res.json({ success: true, webhook: instanceManager.getWebhook(id) })
 })
 
 // Get webhook config
 app.get('/api/instances/:id/webhook', (req: Request, res: Response) => {
     const id = req.params.id
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance) return res.status(404).json({ error: 'Instance not found' })
-    
+
     res.json({ webhook: instanceManager.getWebhook(id) || null })
 })
 
 // Get public status (for client QR page)
 app.get('/api/instances/:id/public-status', (req: Request, res: Response) => {
     const id = req.params.id
-    
+
     const instance = instanceManager.getInstance(id)
     if (!instance) return res.status(404).json({ error: 'Instance not found' })
-    
+
     if (!instance.publicLinkEnabled) {
         return res.status(403).json({ error: 'Public link disabled' })
     }
-    
+
     const { socket, isDeleting, ...rest } = instance as any
     res.json(rest)
 })
@@ -1195,11 +1195,11 @@ function calculateCpuUsage(): number {
     const cpus = os.cpus()
     let totalIdleDiff = 0
     let totalTickDiff = 0
-    
+
     cpus.forEach((cpu, i) => {
         const lastCpu = lastCpuInfo[i]
         if (!lastCpu) return
-        
+
         const idleDiff = cpu.times.idle - lastCpu.times.idle
         let tickDiff = 0
         for (const type in cpu.times) {
@@ -1208,11 +1208,11 @@ function calculateCpuUsage(): number {
         totalIdleDiff += idleDiff
         totalTickDiff += tickDiff
     })
-    
+
     lastCpuInfo = cpus
-    
+
     if (totalTickDiff === 0) return lastCpuUsage
-    
+
     lastCpuUsage = Math.round((1 - totalIdleDiff / totalTickDiff) * 100)
     return lastCpuUsage
 }
@@ -1228,11 +1228,11 @@ app.get('/api/stats', (_req: Request, res: Response) => {
     const usedMemory = totalMemory - freeMemory
     const processMemory = process.memoryUsage()
     const uptime = process.uptime()
-    
+
     // Get instances info
     const instances = instanceManager.getAllInstances()
     const connectedInstances = instances.filter(i => i.status === 'CONNECTED').length
-    
+
     res.json({
         cpu: {
             usage: lastCpuUsage,
@@ -1271,12 +1271,12 @@ async function startServer() {
     try {
         // Initialize license manager (now async - handles activation)
         await licenseManager.initialize()
-        
+
         // Set callback for when license is blocked
         licenseManager.onBlock(() => {
             console.log('[Server] ⚠️ License has been BLOCKED - API is now disabled')
         })
-        
+
         // Check if license allows operation
         const initialStatus = licenseManager.getStatus()
         if (initialStatus.status === 'PENDING_ACTIVATION') {
@@ -1300,24 +1300,24 @@ async function startServer() {
             console.log('╚═══════════════════════════════════════════════════════════════╝')
             console.log('')
         }
-        
+
         // Initialize instance manager (connects to database if configured)
         await instanceManager.initialize()
-        
+
         // Update license manager with instance count
         const updateInstanceCount = () => {
             const instances = instanceManager.getAllInstances()
             licenseManager.setInstancesCount(instances.length)
         }
-        
+
         // Update count periodically
         setInterval(updateInstanceCount, 30000)
         updateInstanceCount()
-        
+
         app.listen(PORT, () => {
             console.log(`Server running on http://localhost:${PORT}`)
             console.log(`Storage type: ${process.env.STORAGE_TYPE || 'file'}`)
-            
+
             const licenseStatus = licenseManager.getStatus()
             if (licenseStatus.status === 'ACTIVE' && licenseStatus.clientName) {
                 console.log(`License: ${licenseStatus.clientName} (${licenseStatus.status})`)
